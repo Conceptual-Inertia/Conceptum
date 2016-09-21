@@ -1,0 +1,22 @@
+; dummy.fng
+; DUMMY TEST BYTECODE
+; COPYRIGHT (C) 2016 RUIJIE FANG <ruijief@acm.org>, ALL RIGHTS RESERVED
+
+.def main: args=0, locals=0
+; print f(10,20)
+    iconst 10
+    iconst 20
+
+    call f()
+    print
+    halt
+
+.def f: args=2, locals=1    ;  int f(x, y)
+    load 0
+    load 1
+    iadd
+    store 2
+    load 2
+    ret
+
+; END OF FILE
