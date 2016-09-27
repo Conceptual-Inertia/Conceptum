@@ -107,7 +107,3 @@ static char * read_return_code() {
 /*===============================================
  * MISCELLANEOUS
  */
-
-char * print_bear() {
-    return "BEAR BEAR BEAR BEAR BEAR BEAR BEAR BEAR BEAR BEAR";
-}
