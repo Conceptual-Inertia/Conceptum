@@ -1,6 +1,9 @@
 /*
  * main.c
+ * The "Conceptum" Turing-Complete VM source code file
  * Copyright (c) 2016 Ruijie Fang <ruijief@acm.org>
+ * All versions released under The GNU General Public License v3.0.
+ * A LICENSE Copy can be found in the project repository.
  * ALL RIGHTS RESERVED.
  */
 
@@ -11,10 +14,8 @@
 #include <float.h>
 
 /*
- * custom libs
+ * Comceptum Instruction set
  */
-
-//#include "instruction_set.h" // The Instruction Set
 
 #define CONCEPT_IADD 100 // Integer Addition OUTPUT: Integer
 #define CONCEPT_IDIV 101 // Integer Division OUTPUT: Integer
@@ -34,7 +35,7 @@
 #define CONCEPT_OR  113 // Boolean OR  OUTPUT: Boolean
 #define CONCEPT_XOR 114 // Boolean XOR OUTPUT: Boolean
 #define CONCEPT_NE  115 // Boolean NE  OUTPUT: Boolean
-#define CONCEPT_IF  116 // Boolean
+#define CONCEPT_IF  116 // Boolean IF  OUTPUT: Boolean // TODO
 
 #define CONCEPT_CCONST 117 // Initialize Char Constant OUTPUT: Void
 #define CONCEPT_ICONST 118 // Initialize Integer Constant OUTPUT: Void
