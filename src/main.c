@@ -77,7 +77,7 @@
 #define CONCEPT_HALT 0
 #define CONCEPT_ABORT 97
 
-int if_handles_exception(int if_exception) {
+static int if_handles_exception(int if_exception) {
     switch(if_exception) {
         case CONCEPT_WARN_NOEXIT:
             return 1;
@@ -94,7 +94,7 @@ int if_handles_exception(int if_exception) {
     }
 }
 
-void on_error(int error, char *msg, int action, int if_exception) {  // TODO TODO Add Memory free!!
+static void on_error(int error, char *msg, int action, int if_exception) {  // TODO TODO Add Memory free!!
     switch(action) {
         case CONCEPT_STATE_INFO:
             if(if_handles_exception(if_exception))
@@ -149,7 +149,7 @@ typedef struct {
  */
 
 // Allocate stack
-void stack_alloc(ConceptStack_t *stack, int bt_size) {
+static void stack_alloc(ConceptStack_t *stack, int bt_size) {
     // size of a void pointer * maximum size
     void *stackContents = malloc(sizeof(void *) * bt_size);
     stack->operand_stack = stackContents;
@@ -158,7 +158,7 @@ void stack_alloc(ConceptStack_t *stack, int bt_size) {
 }
 
 // Deallocate (reset) stack
-void stack_dealloc(ConceptStack_t *stack) {
+static void stack_dealloc(ConceptStack_t *stack) {
     // free objects stored in stack first
     for(int i = 0; i <= stack->top; i++) {
         free(stack->operand_stack[i]);
@@ -171,7 +171,7 @@ void stack_dealloc(ConceptStack_t *stack) {
 }
 
 // Free stack memory
-void stack_free(ConceptStack_t *stack) {
+inline static void stack_free(ConceptStack_t *stack) {
     // Deallocate the stack's contents and properties
     stack_dealloc(stack);
     // Free everything
@@ -179,17 +179,17 @@ void stack_free(ConceptStack_t *stack) {
 }
 
 // Check if stack is empty TRUE: empty FALSE: not empty
-BOOL stack_is_empty(ConceptStack_t *stack) {
+inline static BOOL stack_is_empty(ConceptStack_t *stack) {
     return (stack->top == (-1));
 }
 
 // Check if stack is full TRUE: full FALSE: not full
-BOOL stack_is_full(ConceptStack_t *stack) {
+inline static BOOL stack_is_full(ConceptStack_t *stack) {
     return (stack->top >= stack->size - 1);
 }
 
 // Push a content pointer into stack
-void stack_push(ConceptStack_t *stack, void *content_ptr) {
+static void stack_push(ConceptStack_t *stack, void *content_ptr) {
     // Exit when full
     if(stack_is_full(stack))
         on_error(CONCEPT_STACK_OVERFLOW, "Stack is full, operation abort.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
@@ -200,7 +200,7 @@ void stack_push(ConceptStack_t *stack, void *content_ptr) {
 }
 
 // Pop a content pointer out of the stack
-void* stack_pop(ConceptStack_t *stack) {
+static void* stack_pop(ConceptStack_t *stack) {
     if(stack_is_empty(stack)) {
         on_error(CONCEPT_GENERAL_ERROR, "Stack is empty. Returning a NULL.", CONCEPT_STATE_INFO, CONCEPT_WARN_NOEXIT);
         return NULL; // Nothing is stored yet!
