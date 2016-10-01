@@ -402,27 +402,56 @@ void concept_fgt(ConceptStack_t *stack) {
 
 // AND
 void concept_and(ConceptStack_t *stack) {
-    int type = CONCEPT_AND; // TODO
+    int type = CONCEPT_AND;
+    BOOL and;
+    if(!stack_is_full(stack)) {
+        and = (*(int *)stack_pop(stack) & *(int *)stack_pop(stack));
+        stack_push(stack, &and);
+    }
 }
 
 // OR
 void concept_or(ConceptStack_t *stack) {
-    int type = CONCEPT_OR; // TODO
+    int type = CONCEPT_OR;
+    BOOL or;
+    if(!stack_is_full(stack)) {
+        or = (*(int *)stack_pop(stack) | *(int *)stack_pop(stack));
+        stack_push(stack, &or);
+    }
 }
 
 // XOR
 void concept_xor(ConceptStack_t *stack) {
-    int type = CONCEPT_XOR; // TODO
+    int type = CONCEPT_XOR;
+    BOOL xor;
+    if(!stack_is_full(stack)) {
+        int p = *(int *) stack_pop(stack);
+        int q = *(int *) stack_pop(stack);
+        xor = (p & (!q)) | ((!p) & q);
+        stack_push(stack, &xor);
+    }
 }
 
 // NE
 void concept_ne(ConceptStack_t *stack) {
-    int type = CONCEPT_NE; // TODO
+    int type = CONCEPT_NE;
+    BOOL ne;
+    if(!stack_is_full(stack)) {
+        ne = !(*(int *)stack_pop(stack));
+        stack_push(stack, &ne);
+    }
 }
 
 // IF
 void concept_if(ConceptStack_t *stack) {
-    int type = CONCEPT_IF; // TODO
+    int type = CONCEPT_IF;
+    BOOL cp_if;
+    if(!stack_is_full(stack)) {
+        int p = *(int *) stack_pop(stack);
+        int q = *(int *) stack_pop(stack);
+        cp_if = ((!p) | q);
+        stack_push(stack, &cp_if);
+    }
 }
 
 void concept_cconst(ConceptStack_t *stack, char c) {
@@ -471,15 +500,15 @@ void * concept_pop(ConceptStack_t *stack) {
 }
 
 void feeder() {
-
+  // TODO
 }
 
 void preprocessor() {
-
+  // TODO
 }
 
 // Iterating event loop
-void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) {
+void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
     switch(cbp->instruction) {
         case CONCEPT_IADD:
             concept_iadd(stack);
