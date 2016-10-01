@@ -46,7 +46,7 @@
 
 #define CONCEPT_PROCEDURE 123 // Initialize Concept Function OUTPUT: Void
 #define CONCEPT_PRINT 124 // Print to stdout OUTPUT: Void
-#define CONCEPT_CALL 125 // Call a procedure
+#define CONCEPT_CALL 125 // Call a procedure(void *)
 #define CONCEPT_LOAD 126 // Load value
 #define CONCEPT_STORE 127 // Store value
 #define CONCEPT_FLOAD 128 // Load float value
@@ -144,7 +144,11 @@ typedef struct {
     void *(*operand_stack);
 } ConceptStack_t;
 
-
+// Conceptual bytecode
+typedef struct{
+    int instruction;
+    void *value; // if any
+} ConceptBytecode_t;
 /*
  * Stack Operations Functions
  */
@@ -474,8 +478,87 @@ void preprocessor() {
 
 }
 
-void event_loop() {
-    // TODO TODO TODO
+// Iterating event loop
+void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) {
+    switch(cbp->instruction) {
+        case CONCEPT_IADD:
+            concept_iadd(stack);
+            break;
+        case CONCEPT_IDIV:
+            concept_idiv(stack);
+            break;
+        case CONCEPT_IMUL:
+            concept_imul(stack);
+            break;
+        case CONCEPT_FADD:
+            concept_fadd(stack);
+            break;
+        case CONCEPT_FDIV:
+            concept_fdiv(stack);
+            break;
+        case CONCEPT_FMUL:
+            concept_fmul(stack);
+            break;
+        case CONCEPT_ILT:
+            concept_ilt(stack);
+            break;
+        case CONCEPT_IEQ:
+            concept_ieq(stack);
+            break;
+        case CONCEPT_IGT:
+            concept_igt(stack);
+            break;
+        case CONCEPT_FLT:
+            concept_flt(stack);
+            break;
+        case CONCEPT_FEQ:
+            concept_feq(stack);
+            break;
+        case CONCEPT_FGT:
+            concept_fgt(stack);
+            break;
+        case CONCEPT_AND:
+            concept_and(stack);
+            break;
+        case CONCEPT_OR:
+            concept_or(stack);
+            break;
+        case CONCEPT_XOR:
+            concept_xor(stack);
+            break;
+        case CONCEPT_NE:
+            concept_ne(stack);
+            break;
+        case CONCEPT_IF:
+            concept_if(stack);
+            break;
+        case CONCEPT_CCONST:
+            concept_cconst(stack, (char)(cbp->value));
+            break;
+        case CONCEPT_ICONST:
+            concept_iconst(stack, (int)(cbp->value));
+            break;
+        case CONCEPT_SCONST:
+            concept_sconst(stack, (char *)(cbp->value));
+            break;
+        case CONCEPT_FCONST:
+            concept_fconst(stack, (float)(cbp->value));
+            break;
+        case CONCEPT_BCONST:
+            concept_bconst(stack, (BOOL)(cbp->value));
+            break;
+        case CONCEPT_VCONST:
+            concept_vconst(stack, cbp->value);
+            break;
+        case CONCEPT_PRINT:
+            concept_print(stack);
+            break;
+        case CONCEPT_POP:
+            concept_pop(stack);
+            break;
+        default:
+            break; // do nothing
+    }
 }
 
 int main(int argc, char **argv) {
