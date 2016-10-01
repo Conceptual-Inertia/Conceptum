@@ -542,7 +542,7 @@ void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) {
             concept_sconst(stack, (char *)(cbp->value));
             break;
         case CONCEPT_FCONST:
-            concept_fconst(stack, (float)(cbp->value));
+            concept_fconst(stack, (*(float *)(cbp->value))); // http://stackoverflow.com/questions/15313658/void-is-literally-float-how-to-cast
             break;
         case CONCEPT_BCONST:
             concept_bconst(stack, (BOOL)(cbp->value));
