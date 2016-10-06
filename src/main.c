@@ -67,6 +67,7 @@
 #define CONCEPT_INVALID_PARAMETER 203
 #define CONCEPT_INVALID_TYPE 204
 #define CONCEPT_GENERAL_ERROR 205
+#define CONCEPT_FILE_EMPTY 206
 
 #define CONCEPT_STATE_INFO 90
 #define CONCEPT_STATE_WARNING 91
@@ -149,6 +150,7 @@ typedef struct{
     int instruction;
     void *value; // if any
 } ConceptBytecode_t;
+
 /*
  * Stack Operations Functions
  */
@@ -498,6 +500,38 @@ void * concept_pop(ConceptStack_t *stack) {
     void *val = stack_pop(stack);
     return val;
 }
+
+/*
+ * File Reader Utilities and Lexer
+ */
+char **concept_file;
+
+int read_file(char *file_path, char *read_type) {
+    FILE * fp;
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t line_length;
+
+    fp = fopen(file_path, read_type);
+    if (fp == NULL)
+        return CONCEPT_FILE_EMPTY;
+
+    int counter = 0;
+    while ((line_length = getline(&line, &len, fp)) != -1) {
+        //printf("Retrieved line of length %zu :\n", line_length);
+        //printf("%s", line);
+
+        concept_file[counter] = (char *)malloc(line_length);
+        concept_file[counter] = line;
+
+        counter ++;
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+
 
 void feeder() {
   // TODO
