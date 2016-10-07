@@ -657,7 +657,7 @@ int32_t main(int32_t argc, char **argv) { // test codes here!
     concept_iadd(&stack_test);
 
     void *res = stack_pop(&stack_test);
-    int64_t n = *((int32_t *) res);
+    int32_t n = *((int32_t *) res);
     printf("%d", n);
 
     return 0; // TODO
