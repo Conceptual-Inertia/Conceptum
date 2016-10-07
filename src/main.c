@@ -79,7 +79,9 @@
 #define CONCEPT_HALT 0
 #define CONCEPT_ABORT 97
 
-static int if_handles_exception(int if_exception) {
+#define DEBUG 1 // debug params
+
+static int32_t if_handles_exception(int32_t if_exception) {
     switch(if_exception) {
         case CONCEPT_WARN_NOEXIT:
             return 1;
@@ -96,7 +98,7 @@ static int if_handles_exception(int if_exception) {
     }
 }
 
-static void on_error(int error, char *msg, int action, int if_exception) {  // TODO TODO Add Memory free!!
+static void on_error(int32_t error, char *msg, int32_t action, int32_t if_exception) {  // TODO TODO Add Memory free!!
     switch(action) {
         case CONCEPT_STATE_INFO:
             if(if_handles_exception(if_exception))
@@ -128,26 +130,26 @@ static void on_error(int error, char *msg, int action, int if_exception) {  // T
 // Conceptual Boolean
 #define FALSE 0;
 #define TRUE 1;
-typedef int BOOL;
+typedef int32_t BOOL;
 
 
 // Conceptual String
 typedef struct {
     char (*value);
-    int len;
+    int32_t len;
 } ConceptString_t;
 
 
 // Conceptual Stack
 typedef struct {
-    int top;
-    int size;
+    int32_t top;
+    int32_t size;
     void *(*operand_stack);
 } ConceptStack_t;
 
 // Conceptual bytecode
 typedef struct{
-    int instruction;
+    int32_t instruction;
     void *value; // if any
 } ConceptBytecode_t;
 
@@ -156,18 +158,21 @@ typedef struct{
  */
 
 // Allocate stack
-static void stack_alloc(ConceptStack_t *stack, int bt_size) {
+static void stack_alloc(ConceptStack_t *stack, int32_t bt_size) {
     // size of a void pointer * maximum size
     void *stackContents = malloc(sizeof(void *) * bt_size);
     stack->operand_stack = stackContents;
     stack->size = bt_size;
     stack->top = (-1);
+
+    if(DEBUG)
+        printf("\nSTACK: ALLOC ConceptStack_t @ addr %p , operand_stack @ addr %p, size %d\n", stack, stack->operand_stack, stack->size);
 }
 
 // Deallocate (reset) stack
 static void stack_dealloc(ConceptStack_t *stack) {
     // free objects stored in stack first
-    for(int i = 0; i <= stack->top; i++) {
+    for(int32_t i = 0; i <= stack->top; i++) {
         free(stack->operand_stack[i]);
     }
     // free the stack itself
@@ -201,6 +206,9 @@ static void stack_push(ConceptStack_t *stack, void *content_ptr) {
     if(stack_is_full(stack))
         on_error(CONCEPT_STACK_OVERFLOW, "Stack is full, operation abort.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
 
+    if(DEBUG)
+        printf("\nSTACK: PUSH, addr %p", content_ptr);
+
     // Push while incrementing top value
     stack->operand_stack[++stack->top] = content_ptr; // Increase by one BEFORE pushing
 
@@ -212,7 +220,8 @@ static void* stack_pop(ConceptStack_t *stack) {
         on_error(CONCEPT_GENERAL_ERROR, "Stack is empty. Returning a NULL.", CONCEPT_STATE_INFO, CONCEPT_WARN_NOEXIT);
         return NULL; // Nothing is stored yet!
     }
-    return stack->operand_stack[stack->top--]; // Decrease by one AFTER popping
+    void *ret = stack->operand_stack[stack->top--]; // Decrease by one AFTER popping
+    return ret;
 }
 
 // Conceptual Processor Functions
@@ -220,13 +229,21 @@ static void* stack_pop(ConceptStack_t *stack) {
 
 // IADD Integer addition function
 void concept_iadd(ConceptStack_t *stack) {
-    int type = CONCEPT_IADD; // for debugging purposes
-    int a = *((int *)stack_pop(stack));
-    int b = *((int *)stack_pop(stack)); // pop again for another value
+    int32_t type = CONCEPT_IADD; // for debugging purposes
+    int32_t a = *((int32_t *)stack_pop(stack));
+    int32_t b = *((int32_t *)stack_pop(stack)); // pop again for another value
+
+    if(DEBUG) { // print DEBUG info
+        printf("\nIADD\n");
+        printf("\n%d\t", a);
+        printf("%d\t", b);
+    }
 
     if(a + b <= INT_MAX && a + b >= INT_MIN && !stack_is_full(stack)) {
-        int c = a + b;
-        stack_push(stack, &c);
+        int32_t c = a + b;
+        stack_push(stack, (void *)&c);
+
+        if(DEBUG) printf("%d\n", c);
     } else {
         // Exceeds maximum limit, quit
         on_error(CONCEPT_BUFFER_OVERFLOW, "IADD Operation exceeds INT_MAX limit, Aborting...", CONCEPT_STATE_ERROR, CONCEPT_ABORT);
@@ -235,12 +252,12 @@ void concept_iadd(ConceptStack_t *stack) {
 
 // IDIV Integer division function
 void concept_idiv(ConceptStack_t *stack) {
-    int type = CONCEPT_IDIV;
-    int a = *((int *)stack_pop(stack));
-    int b = *((int *)stack_pop(stack)); // pop again for another value
+    int32_t type = CONCEPT_IDIV;
+    int32_t a = *((int32_t *)stack_pop(stack));
+    int32_t b = *((int32_t *)stack_pop(stack)); // pop again for another value
 
     if(a / b <= INT_MAX && a / b >= INT_MIN && !stack_is_full(stack)) {
-        int c = a / b;
+        int32_t c = a / b;
         stack_push(stack, &c);
     } else {
         // Exceeds maximum limit, quit
@@ -250,12 +267,12 @@ void concept_idiv(ConceptStack_t *stack) {
 
 // IMUL Integer Multiplication function
 void concept_imul(ConceptStack_t *stack) {
-    int type = CONCEPT_IMUL;
-    int a = *((int *)stack_pop(stack));
-    int b = *((int *)stack_pop(stack)); // pop again for another value
+    int32_t type = CONCEPT_IMUL;
+    int32_t a = *((int32_t *)stack_pop(stack));
+    int32_t b = *((int32_t *)stack_pop(stack)); // pop again for another value
 
     if(a * b <= INT_MAX && a * b >= INT_MIN && !stack_is_full(stack)) {
-        int c = a * b;
+        int32_t c = a * b;
         stack_push(stack, &c);
     } else {
         // Exceeds maximum limit, quit
@@ -266,12 +283,12 @@ void concept_imul(ConceptStack_t *stack) {
 
 // FADD Floating point addition function
 void concept_fadd(ConceptStack_t *stack) {
-    int type = CONCEPT_FADD;
+    int32_t type = CONCEPT_FADD;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
     if(a + b <= FLT_MAX && a + b >= FLT_MIN && !stack_is_full(stack)) {
-        int c = a + b;
+        int32_t c = a + b;
         stack_push(stack, &c);
     } else {
         // Exceeds maximum limit, quit
@@ -281,12 +298,12 @@ void concept_fadd(ConceptStack_t *stack) {
 
 // FDIV Floating point division function
 void concept_fdiv(ConceptStack_t *stack) {
-    int type = CONCEPT_FDIV;
+    int32_t type = CONCEPT_FDIV;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
     if(a / b <= FLT_MAX && a / b >= FLT_MIN && !stack_is_full(stack)) {
-        int c = a / b;
+        int32_t c = a / b;
         stack_push(stack, &c);
     } else {
         // Exceeds maximum limit, quit
@@ -296,12 +313,12 @@ void concept_fdiv(ConceptStack_t *stack) {
 
 // FMUL Floating point multiplication function
 void concept_fmul(ConceptStack_t *stack) {
-    int type = CONCEPT_FMUL;
+    int32_t type = CONCEPT_FMUL;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
     if(a * b <= FLT_MAX && a * b >= FLT_MIN && !stack_is_full(stack)) {
-        int c = a * b;
+        int32_t c = a * b;
         stack_push(stack, &c);
     } else {
         // Exceeds maximum limit, quit
@@ -312,90 +329,90 @@ void concept_fmul(ConceptStack_t *stack) {
 
 // ILT Integer Less Than comparison function
 void concept_ilt(ConceptStack_t *stack) {
-    int type = CONCEPT_ILT;
-    int a = *((int *)stack_pop(stack));
-    int b = *((int *)stack_pop(stack));
+    int32_t type = CONCEPT_ILT;
+    int32_t a = *((int32_t *)stack_pop(stack));
+    int32_t b = *((int32_t *)stack_pop(stack));
 
     if(a < b && !stack_is_full(stack)) {
-        int c = TRUE;
+        int32_t c = TRUE;
         stack_push(stack, &c);
     } else {
-        int c = FALSE;
+        int32_t c = FALSE;
         stack_push(stack, &c);
     }
 }
 
 // IEQ Integer Equality comparison function
 void concept_ieq(ConceptStack_t *stack) {
-    int type = CONCEPT_IEQ;
-    int a = *((int *)stack_pop(stack));
-    int b = *((int *)stack_pop(stack));
+    int32_t type = CONCEPT_IEQ;
+    int32_t a = *((int32_t *)stack_pop(stack));
+    int32_t b = *((int32_t *)stack_pop(stack));
 
     if(a == b && !stack_is_full(stack)) {
-        int c = TRUE;
+        int32_t c = TRUE;
         stack_push(stack, &c);
     } else {
-        int c = FALSE;
+        int32_t c = FALSE;
         stack_push(stack, &c);
     }
 }
 
 // IGT Integer Greater Than comparison function
 void concept_igt(ConceptStack_t *stack) {
-    int type = CONCEPT_IGT;
-    int a = *((int *)stack_pop(stack));
-    int b = *((int *)stack_pop(stack));
+    int32_t type = CONCEPT_IGT;
+    int32_t a = *((int32_t *)stack_pop(stack));
+    int32_t b = *((int32_t *)stack_pop(stack));
 
     if(a > b && !stack_is_full(stack)) {
-        int c = TRUE;
+        int32_t c = TRUE;
         stack_push(stack, &c);
     } else {
-        int c = FALSE;
+        int32_t c = FALSE;
         stack_push(stack, &c);
     }
 }
 
 // FLT Floating point Less Than comparison function
 void concept_flt(ConceptStack_t *stack) {
-    int type = CONCEPT_FLT;
+    int32_t type = CONCEPT_FLT;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
     if(a < b) {
-        int c = TRUE;
+        int32_t c = TRUE;
         stack_push(stack, &c);
     } else {
-        int c = FALSE;
+        int32_t c = FALSE;
         stack_push(stack, &c);
     }
 }
 
 // FEQ Floating point Equality comparison function
 void concept_feq(ConceptStack_t *stack) {
-    int type = CONCEPT_FEQ;
+    int32_t type = CONCEPT_FEQ;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
     if(a == b) {
-        int c = TRUE;
+        int32_t c = TRUE;
         stack_push(stack, &c);
     } else {
-        int c = FALSE;
+        int32_t c = FALSE;
         stack_push(stack, &c);
     }
 }
 
 // FGT Floating point Greater Than comparison function
 void concept_fgt(ConceptStack_t *stack) {
-    int type = CONCEPT_FGT;
+    int32_t type = CONCEPT_FGT;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
     if(a > b) {
-        int c = TRUE;
+        int32_t c = TRUE;
         stack_push(stack, &c);
     } else {
-        int c = FALSE;
+        int32_t c = FALSE;
         stack_push(stack, &c);
     }
 }
@@ -404,31 +421,31 @@ void concept_fgt(ConceptStack_t *stack) {
 
 // AND
 void concept_and(ConceptStack_t *stack) {
-    int type = CONCEPT_AND;
+    int32_t type = CONCEPT_AND;
     BOOL and;
     if(!stack_is_full(stack)) {
-        and = (*(int *)stack_pop(stack) & *(int *)stack_pop(stack));
+        and = (*(int32_t *)stack_pop(stack) & *(int32_t *)stack_pop(stack));
         stack_push(stack, &and);
     }
 }
 
 // OR
 void concept_or(ConceptStack_t *stack) {
-    int type = CONCEPT_OR;
+    int32_t type = CONCEPT_OR;
     BOOL or;
     if(!stack_is_full(stack)) {
-        or = (*(int *)stack_pop(stack) | *(int *)stack_pop(stack));
+        or = (*(int32_t *)stack_pop(stack) | *(int32_t *)stack_pop(stack));
         stack_push(stack, &or);
     }
 }
 
 // XOR
 void concept_xor(ConceptStack_t *stack) {
-    int type = CONCEPT_XOR;
+    int32_t type = CONCEPT_XOR;
     BOOL xor;
     if(!stack_is_full(stack)) {
-        int p = *(int *) stack_pop(stack);
-        int q = *(int *) stack_pop(stack);
+        int32_t p = *(int32_t *) stack_pop(stack);
+        int32_t q = *(int32_t *) stack_pop(stack);
         xor = (p & (!q)) | ((!p) & q);
         stack_push(stack, &xor);
     }
@@ -436,67 +453,67 @@ void concept_xor(ConceptStack_t *stack) {
 
 // NE
 void concept_ne(ConceptStack_t *stack) {
-    int type = CONCEPT_NE;
+    int32_t type = CONCEPT_NE;
     BOOL ne;
     if(!stack_is_full(stack)) {
-        ne = !(*(int *)stack_pop(stack));
+        ne = !(*(int32_t *)stack_pop(stack));
         stack_push(stack, &ne);
     }
 }
 
 // IF
 void concept_if(ConceptStack_t *stack) {
-    int type = CONCEPT_IF;
+    int32_t type = CONCEPT_IF;
     BOOL cp_if;
     if(!stack_is_full(stack)) {
-        int p = *(int *) stack_pop(stack);
-        int q = *(int *) stack_pop(stack);
+        int32_t p = *(int32_t *) stack_pop(stack);
+        int32_t q = *(int32_t *) stack_pop(stack);
         cp_if = ((!p) | q);
         stack_push(stack, &cp_if);
     }
 }
 
 void concept_cconst(ConceptStack_t *stack, char c) {
-    int type = CONCEPT_CCONST;
+    int32_t type = CONCEPT_CCONST;
     stack_push(stack, &c);
 }
 
-void concept_iconst(ConceptStack_t *stack, int i) {
-    int type = CONCEPT_ICONST;
+void concept_iconst(ConceptStack_t *stack, int32_t i) {
+    int32_t type = CONCEPT_ICONST;
     stack_push(stack, &i);
 }
 
 void concept_sconst(ConceptStack_t *stack, char *s) {
-    int type = CONCEPT_SCONST;
+    int32_t type = CONCEPT_SCONST;
     stack_push(stack, &s);
 }
 
 void concept_fconst(ConceptStack_t *stack, float f) {
-    int type = CONCEPT_FCONST;
+    int32_t type = CONCEPT_FCONST;
     stack_push(stack, &f);
 }
 
 
 void concept_bconst(ConceptStack_t *stack, BOOL b) {
-    int type = CONCEPT_BCONST;
+    int32_t type = CONCEPT_BCONST;
     if(!stack_is_full(stack))
         stack_push(stack, &b);
 }
 
 void concept_vconst(ConceptStack_t *stack, void *v) {
-    int type = CONCEPT_VCONST;
+    int32_t type = CONCEPT_VCONST;
     if(!stack_is_full(stack))
         stack_push(stack, &v);
 }
 
 void concept_print(ConceptStack_t *stack) {
-    int type = CONCEPT_PRINT;
-    if(!stack_is_empty)
-        printf(stack->operand_stack[stack->top]);
+    int32_t type = CONCEPT_PRINT;
+    if(!stack_is_empty(stack))
+        printf((char *)stack->operand_stack[stack->top]);
 }
 
 void * concept_pop(ConceptStack_t *stack) {
-    int type = CONCEPT_POP;
+    int32_t type = CONCEPT_POP;
     void *val = stack_pop(stack);
     return val;
 }
@@ -506,7 +523,7 @@ void * concept_pop(ConceptStack_t *stack) {
  */
 char **concept_file;
 
-int read_file(char *file_path, char *read_type) {
+int32_t read_file(char *file_path, char *read_type) {
     FILE * fp;
     char * line = NULL;
     size_t len = 0;
@@ -516,7 +533,7 @@ int read_file(char *file_path, char *read_type) {
     if (fp == NULL)
         return CONCEPT_FILE_EMPTY;
 
-    int counter = 0;
+    int32_t counter = 0;
     while ((line_length = getline(&line, &len, fp)) != -1) {
         //printf("Retrieved line of length %zu :\n", line_length);
         //printf("%s", line);
@@ -599,7 +616,7 @@ void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
             concept_cconst(stack, (char)(cbp->value));
             break;
         case CONCEPT_ICONST:
-            concept_iconst(stack, (int)(cbp->value));
+            concept_iconst(stack, (int32_t)(cbp->value));
             break;
         case CONCEPT_SCONST:
             concept_sconst(stack, (char *)(cbp->value));
@@ -624,6 +641,24 @@ void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
     }
 }
 
-int main(int argc, char **argv) {
+int32_t main(int32_t argc, char **argv) { // test codes here!
+
+    if(DEBUG) printf("\nConceptum Runtime DEBUG environment\n");
+
+    ConceptStack_t stack_test;
+    stack_alloc(&stack_test, 300);
+
+    int32_t i = 8;
+    int32_t j = 9;
+
+    stack_push(&stack_test, (void *)&i);
+    stack_push(&stack_test, (void *)&j);
+
+    concept_iadd(&stack_test);
+
+    void *res = stack_pop(&stack_test);
+    int64_t n = *((int32_t *) res);
+    printf("%d", n);
+
     return 0; // TODO
 }
