@@ -864,5 +864,20 @@ int32_t main(int32_t argc, char **argv) { // test codes here!
     int32_t *n = (int32_t *) (stack_pop(&stack_test));
     printf("\n%d\n", *n);
 
+    int32_t a = 110;
+    int32_t b = 20;
+    stack_push(&stack_test, (void *)&a);
+    stack_push(&stack_test, (void *)&b);
+
+    concept_imul(&stack_test);
+    int32_t *m = (int32_t *) (stack_pop(&stack_test));
+    printf("\n%d\n", *m);
+
+    stack_push(&stack_test, (void *)m);
+    stack_push(&stack_test, (void *)n); // push back for div
+
+    concept_idiv(&stack_test);
+    int32_t *o = (int32_t *) (stack_pop(&stack_test));
+    printf("\n%d\n", *o);
     return 0; // TODO
 }
