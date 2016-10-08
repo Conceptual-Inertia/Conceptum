@@ -5,6 +5,11 @@
  * All versions released under The GNU General Public License v3.0.
  * A LICENSE Copy can be found in the project repository.
  * ALL RIGHTS RESERVED.
+ *
+ * ACKNOWLEDGEMENTS
+ * ----------------
+ *
+ *  - Jonathan Shug, who helped debug a memory error
  */
 
 #include <stdlib.h>
