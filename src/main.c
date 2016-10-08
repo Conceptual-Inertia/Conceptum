@@ -240,8 +240,8 @@ void concept_iadd(ConceptStack_t *stack) {
 
     if(DEBUG) { // print DEBUG info
         printf("\nIADD\n");
-        printf("\n%d\t", a);
-        printf("%d\t", b);
+        printf("\t%d\tPLUS\t", a);
+        printf("%d", b);
     }
 
     int32_t *c = malloc(sizeof(int32_t));
@@ -252,10 +252,7 @@ void concept_iadd(ConceptStack_t *stack) {
         stack_push(stack, (void *)c);
 
         if(DEBUG) {
-           // int32_t d = *((int *)stack_pop(stack));
-           // printf("\nIADD finished. Result %d", d);
-           // printf("\tMEM address: %p", &d);
-           // stack_push(stack, (void *)&d);
+           printf("\nIADD finished, RESULT %d\taddr %p", *c, c);
         }
 
     } else {
