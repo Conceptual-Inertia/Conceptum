@@ -17,6 +17,11 @@
 #include <unistd.h>
 #include <limits.h>
 #include <float.h>
+#include <string.h>
+#include <ctype.h>
+
+#include "memman.h"
+#include "conceptlint.h"
 
 /*
  * Comceptum Instruction set
@@ -144,7 +149,6 @@ typedef struct {
     int32_t len;
 } ConceptString_t;
 
-
 // Conceptual Stack
 typedef struct {
     int32_t top;
@@ -153,10 +157,17 @@ typedef struct {
 } ConceptStack_t;
 
 // Conceptual bytecode
-typedef struct{
+typedef struct {
     int32_t instruction;
     void *value; // if any
 } ConceptBytecode_t;
+
+struct {
+    char **code;
+    int len;
+} concept_program;
+
+BOOL is_running;
 
 /*
  * Stack Operations Functions
@@ -718,43 +729,117 @@ void * concept_pop(ConceptStack_t *stack) {
 }
 
 /*
+ * Concept Debug Program
+ */
+int32_t concept_debug() {
+
+    if(DEBUG) printf("\nConceptum Runtime DEBUG environment\n");
+
+    ConceptStack_t stack_test;
+    stack_alloc(&stack_test, 300);
+
+    int32_t i = 28;
+    int32_t j = 25;
+
+    stack_push(&stack_test, (void *)&i);
+    stack_push(&stack_test, (void *)&j);
+
+    int32_t k = *((int32_t *)stack_pop(&stack_test));
+
+    printf("\n%d\n", k);
+
+    stack_push(&stack_test, (void *)&k);
+
+    concept_iadd(&stack_test);
+
+    int32_t *n = (int32_t *) (stack_pop(&stack_test));
+    printf("\n%d\n", *n);
+
+    int32_t a = 110;
+    int32_t b = 20;
+    stack_push(&stack_test, (void *)&a);
+    stack_push(&stack_test, (void *)&b);
+
+    concept_imul(&stack_test);
+    int32_t *m = (int32_t *) (stack_pop(&stack_test));
+    printf("\n%d\n", *m);
+
+    stack_push(&stack_test, (void *)m);
+    stack_push(&stack_test, (void *)n); // push back for div
+
+    concept_idiv(&stack_test);
+    int32_t *o = (int32_t *) (stack_pop(&stack_test));
+    printf("\n%d\n", *o);
+}
+
+
+/*
  * File Reader Utilities and Lexer
  */
-char **concept_file;
 
-int32_t read_file(char *file_path, char *read_type) {
-    FILE * fp;
-    char * line = NULL;
-    size_t len = 0;
-    ssize_t line_length;
 
-    fp = fopen(file_path, read_type);
-    if (fp == NULL)
-        return CONCEPT_FILE_EMPTY;
+char** read_prog(char *file_path) {
+    int lines_allocated = 128;
+    int max_line_len = 100;
 
-    int32_t counter = 0;
-    while ((line_length = getline(&line, &len, fp)) != -1) {
-        //printf("Retrieved line of length %zu :\n", line_length);
-        //printf("%s", line);
-
-        concept_file[counter] = (char *)malloc(line_length);
-        concept_file[counter] = line;
-
-        counter ++;
+    /* Allocate lines of text */
+    char **words = (char **)malloc(sizeof(char*)*lines_allocated);
+    if (words==NULL) {
+        fprintf(stderr,"Out of memory (1).\n");
+        exit(1);
     }
 
+    FILE *fp = fopen(file_path, "r");
+    if (fp == NULL) {
+        fprintf(stderr,"Error opening file.\n");
+        exit(2);
+    }
+
+    int i;
+    for (i=0;1;i++) {
+        int j;
+
+        /* Have we gone over our line allocation? */
+        if (i >= lines_allocated) {
+            int new_size;
+
+            /* Double our allocation and re-allocate */
+            new_size = lines_allocated*2;
+            words = (char **)realloc(words,sizeof(char*)*new_size);
+            if (words==NULL) {
+                fprintf(stderr,"Out of memory.\n");
+                exit(3);
+            }
+            lines_allocated = new_size;
+        }
+        /* Allocate space for the next line */
+        words[i] = malloc(max_line_len);
+        if (words[i]==NULL) {
+            fprintf(stderr,"Out of memory (3).\n");
+            exit(4);
+        }
+        if (fgets(words[i],max_line_len-1,fp)==NULL)
+            break;
+
+        /* Get rid of CR or LF at end of line */
+        for (j=strlen(words[i])-1;j>=0 && (words[i][j]=='\n' || words[i][j]=='\r');j--);
+        ; ; ;
+        words[i][j+1]='\0';
+    }
+    /* Close file */
     fclose(fp);
 
-    return 0;
-}
+    return words;
 
+    //int j;
+    //for(j = 0; j < i; j++)
+    //    printf("%s\n", words[j]);
 
-void feeder() {
-  // TODO
-}
-
-void preprocessor() {
-  // TODO
+    /* Good practice to free memory */
+    //for (;i>=0;i--)
+    //    free(words[i]);
+    //free(words);
+    //return 0;
 }
 
 // Iterating event loop
@@ -815,13 +900,13 @@ void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
             concept_cconst(stack, (char)(cbp->value));
             break;
         case CONCEPT_ICONST:
-            concept_iconst(stack, (int32_t)(cbp->value));
+            concept_iconst(stack, (*(int32_t *)(cbp->value)));
             break;
         case CONCEPT_SCONST:
             concept_sconst(stack, (char *)(cbp->value));
             break;
         case CONCEPT_FCONST:
-            concept_fconst(stack, (*(float *)(cbp->value))); // http://stackoverflow.com/questions/15313658/void-is-literally-float-how-to-cast
+            concept_fconst(stack, (*(float *)(cbp->value)));
             break;
         case CONCEPT_BCONST:
             concept_bconst(stack, (BOOL)(cbp->value));
@@ -840,44 +925,11 @@ void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
     }
 }
 
+void run() {
+
+}
+
 int32_t main(int32_t argc, char **argv) { // test codes here!
 
-    if(DEBUG) printf("\nConceptum Runtime DEBUG environment\n");
-
-    ConceptStack_t stack_test;
-    stack_alloc(&stack_test, 300);
-
-    int32_t i = 28;
-    int32_t j = 25;
-
-    stack_push(&stack_test, (void *)&i);
-    stack_push(&stack_test, (void *)&j);
-
-    int32_t k = *((int32_t *)stack_pop(&stack_test));
-
-    printf("\n%d\n", k);
-
-    stack_push(&stack_test, (void *)&k);
-
-    concept_iadd(&stack_test);
-
-    int32_t *n = (int32_t *) (stack_pop(&stack_test));
-    printf("\n%d\n", *n);
-
-    int32_t a = 110;
-    int32_t b = 20;
-    stack_push(&stack_test, (void *)&a);
-    stack_push(&stack_test, (void *)&b);
-
-    concept_imul(&stack_test);
-    int32_t *m = (int32_t *) (stack_pop(&stack_test));
-    printf("\n%d\n", *m);
-
-    stack_push(&stack_test, (void *)m);
-    stack_push(&stack_test, (void *)n); // push back for div
-
-    concept_idiv(&stack_test);
-    int32_t *o = (int32_t *) (stack_pop(&stack_test));
-    printf("\n%d\n", *o);
     return 0; // TODO
 }
