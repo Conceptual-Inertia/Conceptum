@@ -244,15 +244,18 @@ void concept_iadd(ConceptStack_t *stack) {
         printf("%d\t", b);
     }
 
+    int32_t *c = malloc(sizeof(int32_t));
+
     if(a + b <= INT_MAX && a + b >= INT_MIN && !stack_is_full(stack)) {
-        int32_t c = a + b;
-        stack_push(stack, (void *)&c);
+        //int32_t c = a + b;
+        *c = a + b;
+        stack_push(stack, (void *)c);
 
         if(DEBUG) {
-            int32_t d = *((int *)stack_pop(stack));
-            printf("\nIADD finished. Result %d", d);
-            printf("\tMEM address: %p", &d);
-            stack_push(stack, (void *)&d);
+           // int32_t d = *((int *)stack_pop(stack));
+           // printf("\nIADD finished. Result %d", d);
+           // printf("\tMEM address: %p", &d);
+           // stack_push(stack, (void *)&d);
         }
 
     } else {
@@ -673,8 +676,8 @@ int32_t main(int32_t argc, char **argv) { // test codes here!
 
     concept_iadd(&stack_test);
 
-    int32_t n = *((int32_t *) (stack_pop(&stack_test)));
-    printf("\n%d\n", n);
+    int32_t *n = (int32_t *) (stack_pop(&stack_test));
+    printf("\n%d\n", *n);
 
     return 0; // TODO
 }
