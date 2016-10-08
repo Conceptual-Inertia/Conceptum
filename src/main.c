@@ -202,15 +202,17 @@ inline static BOOL stack_is_full(ConceptStack_t *stack) {
 
 // Push a content pointer into stack
 static void stack_push(ConceptStack_t *stack, void *content_ptr) {
+    void *local_ptr = content_ptr;
+
     // Exit when full
     if(stack_is_full(stack))
         on_error(CONCEPT_STACK_OVERFLOW, "Stack is full, operation abort.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
 
     if(DEBUG)
-        printf("\nSTACK: PUSH, addr %p", content_ptr);
+        printf("\nSTACK: PUSH, addr %p", local_ptr);
 
     // Push while incrementing top value
-    stack->operand_stack[++stack->top] = content_ptr; // Increase by one BEFORE pushing
+    stack->operand_stack[++(stack->top)] = local_ptr; // Increase by one BEFORE pushing
 
 }
 
@@ -220,7 +222,10 @@ static void* stack_pop(ConceptStack_t *stack) {
         on_error(CONCEPT_GENERAL_ERROR, "Stack is empty. Returning a NULL.", CONCEPT_STATE_INFO, CONCEPT_WARN_NOEXIT);
         return NULL; // Nothing is stored yet!
     }
-    void *ret = stack->operand_stack[stack->top--]; // Decrease by one AFTER popping
+
+    void *ret =  stack->operand_stack[(stack->top)--]; // Decrease by one AFTER popping
+
+    if(DEBUG) printf("\nSTACK: POP, addr %p, current top %d", ret, (stack->top));
     return ret;
 }
 
@@ -243,7 +248,13 @@ void concept_iadd(ConceptStack_t *stack) {
         int32_t c = a + b;
         stack_push(stack, (void *)&c);
 
-        if(DEBUG) printf("%d\n", c);
+        if(DEBUG) {
+            int32_t d = *((int *)stack_pop(stack));
+            printf("\nIADD finished. Result %d", d);
+            printf("\tMEM address: %p", &d);
+            stack_push(stack, (void *)&d);
+        }
+
     } else {
         // Exceeds maximum limit, quit
         on_error(CONCEPT_BUFFER_OVERFLOW, "IADD Operation exceeds INT_MAX limit, Aborting...", CONCEPT_STATE_ERROR, CONCEPT_ABORT);
@@ -654,11 +665,16 @@ int32_t main(int32_t argc, char **argv) { // test codes here!
     stack_push(&stack_test, (void *)&i);
     stack_push(&stack_test, (void *)&j);
 
+    int32_t k = *((int32_t *)stack_pop(&stack_test));
+
+    printf("\n%d\n", k);
+
+    stack_push(&stack_test, (void *)&k);
+
     concept_iadd(&stack_test);
 
-    void *res = stack_pop(&stack_test);
-    int32_t n = *((int32_t *) res);
-    printf("%d", n);
+    int32_t n = *((int32_t *) (stack_pop(&stack_test)));
+    printf("\n%d\n", n);
 
     return 0; // TODO
 }
