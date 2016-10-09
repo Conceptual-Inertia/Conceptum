@@ -33,6 +33,12 @@ etc.
 
 The source code shall be very readable, so please don't hesitate to refer to the source code itself when in doubt :)
 
+## To Contribute
+Please refer to [Wiki/About::Contribute](https://github.com/Conceptual-Inertia/Conceptum/wiki/About::Contribute).
+
+## Design Philosophy
+Please refer to [Wiki/About::DesignPhilosophy](https://github.com/Conceptual-Inertia/Conceptum/wiki/About::DesignPhilosophy).
+
 ## License
 GNU General Public License v3.0.
 
