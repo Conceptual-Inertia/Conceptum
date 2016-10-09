@@ -37,5 +37,5 @@ void rfree(void *ptr);
  * @param ptr void*
  * @return void*
  */
-void* rrealloc(void *ptr);
+void* rrealloc(void *ptr, size_t size);
 #endif

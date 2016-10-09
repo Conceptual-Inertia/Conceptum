@@ -64,6 +64,8 @@
 #define CONCEPT_GLOAD 130 // Load global value
 #define CONCEPT_GSTORE 131 // Store global value
 #define CONCEPT_POP 132 // Pop a value out of stack
+#define CONCEPT_IF_ICMPLE 133 // if_icmple
+#define CONCEPT_GOTO 134 // Goto Statement
 
 /* ========================
  * Error handling functions
@@ -136,7 +138,6 @@ static void on_error(int32_t error, char *msg, int32_t action, int32_t if_except
  * ========================
  */
 
-
 // Conceptual Boolean
 #define FALSE 0;
 #define TRUE 1;
@@ -176,7 +177,7 @@ BOOL is_running;
 // Allocate stack
 static void stack_alloc(ConceptStack_t *stack, int32_t bt_size) {
     // size of a void pointer * maximum size
-    void *stackContents = malloc(sizeof(void *) * bt_size);
+    void *stackContents = rmalloc(sizeof(void *) * bt_size);
     stack->operand_stack = stackContents;
     stack->size = bt_size;
     stack->top = (-1);
@@ -257,7 +258,7 @@ void concept_iadd(ConceptStack_t *stack) {
         printf("%d", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a + b <= INT32_MAX && a + b >= INT32_MIN && !stack_is_full(stack)) {
         //int32_t c = a + b;
@@ -284,7 +285,7 @@ void concept_idiv(ConceptStack_t *stack) {
         printf("%d", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a / b <= INT32_MAX && a / b >= INT32_MIN && !stack_is_full(stack)) {
         *c = a / b;
@@ -310,7 +311,7 @@ void concept_imul(ConceptStack_t *stack) {
         printf("%d", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a * b <= INT32_MAX && a * b >= INT32_MIN && !stack_is_full(stack)) {
         *c = a * b;
@@ -337,7 +338,7 @@ void concept_fadd(ConceptStack_t *stack) {
         printf("%f", b);
     }
 
-    float *c = malloc(sizeof(float));
+    float *c = rmalloc(sizeof(float));
 
     if(a + b <= FLT_MAX && a + b >= FLT_MIN && !stack_is_full(stack)) {
         *c = a + b;
@@ -363,7 +364,7 @@ void concept_fdiv(ConceptStack_t *stack) {
         printf("%f", b);
     }
 
-    float *c = malloc(sizeof(float));
+    float *c = rmalloc(sizeof(float));
 
     if(a / b <= FLT_MAX && a / b >= FLT_MIN && !stack_is_full(stack)) {
         *c = a / b;
@@ -389,7 +390,7 @@ void concept_fmul(ConceptStack_t *stack) {
         printf("%f", b);
     }
 
-    float *c = malloc(sizeof(float));
+    float *c = rmalloc(sizeof(float));
 
     if(a * b <= FLT_MAX && a * b >= FLT_MIN && !stack_is_full(stack)) {
         *c = a * b;
@@ -416,7 +417,7 @@ void concept_ilt(ConceptStack_t *stack) {
         printf("%d", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a < b && !stack_is_full(stack)) {
         *c = TRUE;
@@ -443,7 +444,7 @@ void concept_ieq(ConceptStack_t *stack) {
         printf("%d", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a == b && !stack_is_full(stack)) {
         *c = TRUE;
@@ -468,7 +469,7 @@ void concept_igt(ConceptStack_t *stack) {
         printf("%d", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a > b && !stack_is_full(stack)) {
         *c = TRUE;
@@ -493,7 +494,7 @@ void concept_flt(ConceptStack_t *stack) {
         printf("%f", b);
     }
 
-    int32_t *c = malloc(sizeof(float)); // int32_t used for boolean value, NOT FLOAT!
+    int32_t *c = rmalloc(sizeof(float)); // int32_t used for boolean value, NOT FLOAT!
 
     if(a < b) {
         *c = TRUE;
@@ -518,7 +519,7 @@ void concept_feq(ConceptStack_t *stack) {
         printf("%f", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a == b) {
         *c = TRUE;
@@ -543,7 +544,7 @@ void concept_fgt(ConceptStack_t *stack) {
         printf("%f", b);
     }
 
-    int32_t *c = malloc(sizeof(int32_t));
+    int32_t *c = rmalloc(sizeof(int32_t));
 
     if(a > b) {
         *c = TRUE;
@@ -562,7 +563,7 @@ void concept_and(ConceptStack_t *stack) {
 
     if(DEBUG) printf("\nAND");
 
-    BOOL *and = malloc(sizeof(BOOL));
+    BOOL *and = rmalloc(sizeof(BOOL));
     if(!stack_is_full(stack)) {
         *and = (*(int32_t *)stack_pop(stack) & *(int32_t *)stack_pop(stack));
         stack_push(stack, (void *)and);
@@ -577,7 +578,7 @@ void concept_or(ConceptStack_t *stack) {
 
     if(DEBUG) printf("\nOR");
 
-    BOOL *or = malloc(sizeof(BOOL));
+    BOOL *or = rmalloc(sizeof(BOOL));
     if(!stack_is_full(stack)) {
         *or = (*(int32_t *)stack_pop(stack) | *(int32_t *)stack_pop(stack));
         stack_push(stack, (void *)or);
@@ -595,7 +596,7 @@ void concept_xor(ConceptStack_t *stack) {
 
     if(DEBUG) printf("\nXOR (%d XOR %d)", p, q);
 
-    BOOL *xor = malloc(sizeof(BOOL));
+    BOOL *xor = rmalloc(sizeof(BOOL));
     if(!stack_is_full(stack)) {
         *xor = (p & (!q)) | ((!p) & q);
         stack_push(stack, (void *)xor);
@@ -612,7 +613,7 @@ void concept_ne(ConceptStack_t *stack) {
 
     if(DEBUG) printf("\nNE (!%d)", p);
 
-    BOOL *ne = malloc(sizeof(BOOL));
+    BOOL *ne = rmalloc(sizeof(BOOL));
     if(!stack_is_full(stack)) {
         *ne = (!p);
         stack_push(stack, (void *)ne);
@@ -630,7 +631,7 @@ void concept_if(ConceptStack_t *stack) {
 
     if(DEBUG) printf("\nIF(Boolean Algebra Operation), %d->%d", p, q);
 
-    BOOL *cp_if = malloc(sizeof(BOOL));
+    BOOL *cp_if = rmalloc(sizeof(BOOL));
     if(!stack_is_full(stack)) {
         *cp_if = ((!p) | q);
         stack_push(stack, (void *)cp_if);
@@ -644,7 +645,7 @@ void concept_cconst(ConceptStack_t *stack, char c) {
 
     if(DEBUG) printf("\nCCONST %c", c);
 
-    char *c_ptr = malloc(sizeof(char)); // Prevent space from being collected
+    char *c_ptr = rmalloc(sizeof(char)); // Prevent space from being collected
 
     *c_ptr = c;
 
@@ -656,7 +657,7 @@ void concept_iconst(ConceptStack_t *stack, int32_t i) {
 
     if(DEBUG) printf("\nICONST %d", i);
 
-    int32_t *i_ptr = malloc(sizeof(int32_t));
+    int32_t *i_ptr = rmalloc(sizeof(int32_t));
     *i_ptr = i;
 
     stack_push(stack, (void *)i_ptr);
@@ -673,7 +674,7 @@ void concept_sconst(ConceptStack_t *stack, char *s) {
         printf("\n\n");
     }
 
-    char **s_ptr = malloc(sizeof(s)); // better than sizeof char*
+    char **s_ptr = rmalloc(sizeof(s)); // better than sizeof char*
     *s_ptr = s;
 
     stack_push(stack, (void *)s_ptr); // pointers, pointers, pointers dreaded POINTERS!!!!
@@ -684,7 +685,7 @@ void concept_fconst(ConceptStack_t *stack, float f) {
 
     if(DEBUG) printf("\nFCONST %f", f);
 
-    float *f_ptr = malloc(sizeof(float));
+    float *f_ptr = rmalloc(sizeof(float));
     *f_ptr = f;
 
     stack_push(stack, (void *)f_ptr);
@@ -696,7 +697,7 @@ void concept_bconst(ConceptStack_t *stack, BOOL b) {
 
     if(DEBUG) printf("\nBCONST %d", b);
 
-    BOOL *b_ptr = malloc(sizeof(BOOL));
+    BOOL *b_ptr = rmalloc(sizeof(BOOL));
     *b_ptr = b;
     if(!stack_is_full(stack))
         stack_push(stack, (void *)b_ptr);
@@ -709,7 +710,7 @@ void concept_vconst(ConceptStack_t *stack, void *v) {
 
     // gonna be very ugly!
 
-    void **v_ptr = malloc(sizeof(v));
+    void **v_ptr = rmalloc(sizeof(v));
     *v_ptr = v;
 
     if(!stack_is_full(stack))
@@ -783,7 +784,7 @@ char** read_prog(char *file_path) {
     int max_line_len = 100;
 
     /* Allocate lines of text */
-    char **words = (char **)malloc(sizeof(char*)*lines_allocated);
+    char **words = (char **)rmalloc(sizeof(char*)*lines_allocated);
     if (words==NULL) {
         fprintf(stderr,"Out of memory (1).\n");
         exit(1);
@@ -805,7 +806,7 @@ char** read_prog(char *file_path) {
 
             /* Double our allocation and re-allocate */
             new_size = lines_allocated*2;
-            words = (char **)realloc(words,sizeof(char*)*new_size);
+            words = (char **)rrealloc(words,sizeof(char*)*new_size);
             if (words==NULL) {
                 fprintf(stderr,"Out of memory.\n");
                 exit(3);
@@ -813,7 +814,7 @@ char** read_prog(char *file_path) {
             lines_allocated = new_size;
         }
         /* Allocate space for the next line */
-        words[i] = malloc(max_line_len);
+        words[i] = rmalloc(max_line_len);
         if (words[i]==NULL) {
             fprintf(stderr,"Out of memory (3).\n");
             exit(4);
@@ -925,11 +926,16 @@ void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
     }
 }
 
-void run() {
+void run(char *arg) {
 
 }
 
 int32_t main(int32_t argc, char **argv) { // test codes here!
-
-    return 0; // TODO
+    if(argc == 2) run(argv[1]);
+    else {
+        printf("\n Conceptum \n");
+        printf("Usage: ./cvm <code_file_path>\n");
+        printf("Err: No input file specified. Exiting...");
+    }
+    return 0;
 }

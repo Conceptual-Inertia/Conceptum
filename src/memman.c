@@ -36,7 +36,7 @@ void* rmalloc(size_t size) {
 }
 
 void rfree(void *ptr) {
-    for(int i = 0; i < (sizeof(reg / sizeof(void *))); i++) {
+    for(int i = 0; i < (sizeof(reg) / sizeof(void *)); i++) {
         if(reg[i] == ptr) {
             void **newreg = malloc(sizeof(reg) - sizeof(void *));
             for(int i = 0; i < sizeof(reg) / sizeof(void *); i++) {
