@@ -50,6 +50,7 @@ void rfree(void *ptr) {
 }
 
 void* rrealloc(void *ptr, size_t size) {
-    realloc(ptr, size);
+    ptr = realloc(ptr, size);
     memreg(ptr);
+    return ptr;
 }

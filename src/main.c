@@ -771,6 +771,7 @@ int32_t concept_debug() {
     concept_idiv(&stack_test);
     int32_t *o = (int32_t *) (stack_pop(&stack_test));
     printf("\n%d\n", *o);
+    return 0;
 }
 
 
@@ -950,33 +951,33 @@ ConceptBytecode_t * parse(){
         }
 
         // The advent of a gigantic if... C switches doesn't support char*
-        if(instr == "iadd") bytecodes[i].instruction = CONCEPT_IADD;
-        else if(instr == "idiv") bytecodes[i].instruction = CONCEPT_IDIV;
-        else if(instr == "imul") bytecodes[i].instruction = CONCEPT_IMUL;
-        else if(instr == "fadd") bytecodes[i].instruction = CONCEPT_FADD;
-        else if(instr == "fdiv") bytecodes[i].instruction = CONCEPT_FDIV;
-        else if(instr == "fmul") bytecodes[i].instruction = CONCEPT_FMUL;
-        else if(instr == "ilt") bytecodes[i].instruction = CONCEPT_ILT;
-        else if(instr == "ieq") bytecodes[i].instruction = CONCEPT_IEQ;
-        else if(instr == "igt") bytecodes[i].instruction = CONCEPT_IGT;
-        else if(instr == "flt") bytecodes[i].instruction = CONCEPT_FLT;
-        else if(instr == "feq") bytecodes[i].instruction = CONCEPT_FEQ;
-        else if(instr == "fgt") bytecodes[i].instruction = CONCEPT_FGT;
-        else if(instr == "and") bytecodes[i].instruction = CONCEPT_AND;
-        else if(instr == "or") bytecodes[i].instruction = CONCEPT_OR;
-        else if(instr == "xor") bytecodes[i].instruction = CONCEPT_XOR;
-        else if(instr == "ne") bytecodes[i].instruction = CONCEPT_NE;
-        else if(instr == "if") bytecodes[i].instruction = CONCEPT_IF;
-        else if(instr == "cconst") bytecodes[i].instruction = CONCEPT_CCONST;
-        else if(instr == "iconst") bytecodes[i].instruction = CONCEPT_ICONST;
-        else if(instr == "sconst") bytecodes[i].instruction = CONCEPT_SCONST;
-        else if(instr == "fconst") bytecodes[i].instruction = CONCEPT_FCONST;
-        else if(instr == "bconst") bytecodes[i].instruction = CONCEPT_BCONST;
-        else if(instr == "vconst") bytecodes[i].instruction = CONCEPT_VCONST;
-        else if(instr == "print") bytecodes[i].instruction = CONCEPT_PRINT;
-        else if(instr == "pop") bytecodes[i].instruction = CONCEPT_POP;
-        else if(instr == "goto") bytecodes[i].instruction = CONCEPT_GOTO;
-        else if(instr == "if_icmple") bytecodes[i].instruction = CONCEPT_IF_ICMPLE;
+        if(!strcmp(instr, "iadd")) bytecodes[i].instruction = CONCEPT_IADD;
+        else if(!strcmp(instr, "idiv")) bytecodes[i].instruction = CONCEPT_IDIV;
+        else if(!strcmp(instr, "imul")) bytecodes[i].instruction = CONCEPT_IMUL;
+        else if(!strcmp(instr, "fadd")) bytecodes[i].instruction = CONCEPT_FADD;
+        else if(!strcmp(instr, "fdiv")) bytecodes[i].instruction = CONCEPT_FDIV;
+        else if(!strcmp(instr, "fmul")) bytecodes[i].instruction = CONCEPT_FMUL;
+        else if(!strcmp(instr, "ilt")) bytecodes[i].instruction = CONCEPT_ILT;
+        else if(!strcmp(instr, "ieq")) bytecodes[i].instruction = CONCEPT_IEQ;
+        else if(!strcmp(instr, "igt")) bytecodes[i].instruction = CONCEPT_IGT;
+        else if(!strcmp(instr, "flt")) bytecodes[i].instruction = CONCEPT_FLT;
+        else if(!strcmp(instr, "feq")) bytecodes[i].instruction = CONCEPT_FEQ;
+        else if(!strcmp(instr, "fgt")) bytecodes[i].instruction = CONCEPT_FGT;
+        else if(!strcmp(instr, "and")) bytecodes[i].instruction = CONCEPT_AND;
+        else if(!strcmp(instr, "or")) bytecodes[i].instruction = CONCEPT_OR;
+        else if(!strcmp(instr, "xor")) bytecodes[i].instruction = CONCEPT_XOR;
+        else if(!strcmp(instr, "ne")) bytecodes[i].instruction = CONCEPT_NE;
+        else if(!strcmp(instr, "if")) bytecodes[i].instruction = CONCEPT_IF;
+        else if(!strcmp(instr, "cconst")) bytecodes[i].instruction = CONCEPT_CCONST;
+        else if(!strcmp(instr, "iconst")) bytecodes[i].instruction = CONCEPT_ICONST;
+        else if(!strcmp(instr, "sconst")) bytecodes[i].instruction = CONCEPT_SCONST;
+        else if(!strcmp(instr, "fconst")) bytecodes[i].instruction = CONCEPT_FCONST;
+        else if(!strcmp(instr, "bconst")) bytecodes[i].instruction = CONCEPT_BCONST;
+        else if(!strcmp(instr, "vconst")) bytecodes[i].instruction = CONCEPT_VCONST;
+        else if(!strcmp(instr, "print")) bytecodes[i].instruction = CONCEPT_PRINT;
+        else if(!strcmp(instr, "pop")) bytecodes[i].instruction = CONCEPT_POP;
+        else if(!strcmp(instr, "goto")) bytecodes[i].instruction = CONCEPT_GOTO;
+        else if(!strcmp(instr, "if_icmple")) bytecodes[i].instruction = CONCEPT_IF_ICMPLE;
         else on_error(CONCEPT_COMPILER_ERROR, "Invalid instruction detected.", CONCEPT_STATE_CATASTROPHE, CONCEPT_ABORT);
 
         char *str = concept_program.code[i];
