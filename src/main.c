@@ -163,7 +163,7 @@ typedef struct {
     void *value; // if any
 } ConceptBytecode_t;
 
-struct {
+struct ConceptProgram_t {
     char **code;
     int len;
 } concept_program;
@@ -779,7 +779,7 @@ int32_t concept_debug() {
  */
 
 
-char** read_prog(char *file_path) {
+void read_prog(char *file_path) {
     int lines_allocated = 128;
     int max_line_len = 100;
 
@@ -808,7 +808,7 @@ char** read_prog(char *file_path) {
             new_size = lines_allocated*2;
             words = (char **)rrealloc(words,sizeof(char*)*new_size);
             if (words==NULL) {
-                fprintf(stderr,"Out of memory.\n");
+                fprintf(stderr,"err read_file(): Out of memory.\n");
                 exit(3);
             }
             lines_allocated = new_size;
@@ -816,7 +816,7 @@ char** read_prog(char *file_path) {
         /* Allocate space for the next line */
         words[i] = rmalloc(max_line_len);
         if (words[i]==NULL) {
-            fprintf(stderr,"Out of memory (3).\n");
+            fprintf(stderr,"err read_file(): Out of memory (3).\n");
             exit(4);
         }
         if (fgets(words[i],max_line_len-1,fp)==NULL)
@@ -830,7 +830,8 @@ char** read_prog(char *file_path) {
     /* Close file */
     fclose(fp);
 
-    return words;
+    concept_program.code = words;
+    concept_program.len = i;
 
     //int j;
     //for(j = 0; j < i; j++)
@@ -926,7 +927,73 @@ void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
     }
 }
 
+void cleanup(ConceptStack_t *global_stack) {
+    memfree();
+    stack_free(global_stack);
+}
+
+// parse() called after initializing concept_program global val
+ConceptBytecode_t * parse(){
+    ConceptBytecode_t* bytecodes = malloc(sizeof(ConceptBytecode_t) * (concept_program.len));
+    for(int i = 0; i < concept_program.len; i++) {
+        int counter;
+        for(counter = 0; counter < strlen(concept_program.code[i]); counter++) {
+            if(concept_program.code[i][counter] == '\0' || concept_program.code[i][counter] == ' ' || concept_program.code[i][counter] == '\t')
+                break;
+        }
+
+        char *instr = rmalloc(sizeof(char) * counter);
+
+        for(int j = 0; j < strlen(concept_program.code[i]); j++) {
+            if(concept_program.code[i][j] != '\0' && concept_program.code[i][j] != ' ' && concept_program.code[i][j] != '\t')
+                instr[j] = concept_program.code[i][j];
+        }
+
+        // The advent of a gigantic if... C switches doesn't support char*
+        if(instr == "iadd") bytecodes[i].instruction = CONCEPT_IADD;
+        else if(instr == "idiv") bytecodes[i].instruction = CONCEPT_IDIV;
+        else if(instr == "imul") bytecodes[i].instruction = CONCEPT_IMUL;
+        else if(instr == "fadd") bytecodes[i].instruction = CONCEPT_FADD;
+        else if(instr == "fdiv") bytecodes[i].instruction = CONCEPT_FDIV;
+        else if(instr == "fmul") bytecodes[i].instruction = CONCEPT_FMUL;
+        else if(instr == "ilt") bytecodes[i].instruction = CONCEPT_ILT;
+        else if(instr == "ieq") bytecodes[i].instruction = CONCEPT_IEQ;
+        else if(instr == "igt") bytecodes[i].instruction = CONCEPT_IGT;
+        else if(instr == "flt") bytecodes[i].instruction = CONCEPT_FLT;
+        else if(instr == "feq") bytecodes[i].instruction = CONCEPT_FEQ;
+        else if(instr == "fgt") bytecodes[i].instruction = CONCEPT_FGT;
+        else if(instr == "and") bytecodes[i].instruction = CONCEPT_AND;
+        else if(instr == "or") bytecodes[i].instruction = CONCEPT_OR;
+        else if(instr == "xor") bytecodes[i].instruction = CONCEPT_XOR;
+        else if(instr == "ne") bytecodes[i].instruction = CONCEPT_NE;
+        else if(instr == "if") bytecodes[i].instruction = CONCEPT_IF;
+        else if(instr == "cconst") bytecodes[i].instruction = CONCEPT_CCONST;
+        else if(instr == "iconst") bytecodes[i].instruction = CONCEPT_ICONST;
+        else if(instr == "sconst") bytecodes[i].instruction = CONCEPT_SCONST;
+        else if(instr == "fconst") bytecodes[i].instruction = CONCEPT_FCONST;
+        else if(instr == "bconst") bytecodes[i].instruction = CONCEPT_BCONST;
+        else if(instr == "vconst") bytecodes[i].instruction = CONCEPT_VCONST;
+        else if(instr == "print") bytecodes[i].instruction = CONCEPT_PRINT;
+        else if(instr == "pop") bytecodes[i].instruction = CONCEPT_POP;
+        else if(instr == "goto") bytecodes[i].instruction = CONCEPT_GOTO;
+        else if(instr == "if_icmple") bytecodes[i].instruction = CONCEPT_IF_ICMPLE;
+        else on_error(CONCEPT_COMPILER_ERROR, "Invalid instruction detected.", CONCEPT_STATE_CATASTROPHE, CONCEPT_ABORT);
+
+        char *str = concept_program.code[i];
+
+        char *param = substring(str, (counter + 1), (int)strlen(str));
+        bytecodes[i].value = param;
+    }
+    return bytecodes;
+}
+
 void run(char *arg) {
+    // read in the program
+    read_prog(arg);
+    if(concept_program.code == NULL || concept_program.len == 0 || concept_program.len == -1)
+        on_error(CONCEPT_COMPILER_ERROR, "Input program not found.",  CONCEPT_STATE_CATASTROPHE, CONCEPT_ABORT);
+
+
 
 }
 
