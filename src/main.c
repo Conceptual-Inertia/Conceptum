@@ -22,6 +22,12 @@
 
 #include "memman.h"
 #include "conceptlint.h"
+#include "assembler.h"
+
+// Limits
+
+#define CONCEPTIP_MAX_LENGTH 30000
+#define CONCEPTFP_MAX_LENGTH 30000
 
 /*
  * Comceptum Instruction set
@@ -66,6 +72,7 @@
 #define CONCEPT_POP 132 // Pop a value out of stack
 #define CONCEPT_IF_ICMPLE 133 // if_icmple
 #define CONCEPT_GOTO 134 // Goto Statement
+#define CONCEPT_RETURN 135 // Return
 
 /* ========================
  * Error handling functions
@@ -169,6 +176,8 @@ struct ConceptProgram_t {
 } concept_program;
 
 BOOL is_running;
+
+void **symbols_list;
 
 /*
  * Stack Operations Functions
@@ -845,87 +854,108 @@ void read_prog(char *file_path) {
     //return 0;
 }
 
+ConceptBytecode_t* procedure_call_lookup(char *procedure_name) {
+    // TODO
+}
+
 // Iterating event loop
-void event_loop(ConceptBytecode_t *cbp, ConceptStack_t *stack) { // TODO
-    switch(cbp->instruction) {
-        case CONCEPT_IADD:
-            concept_iadd(stack);
-            break;
-        case CONCEPT_IDIV:
-            concept_idiv(stack);
-            break;
-        case CONCEPT_IMUL:
-            concept_imul(stack);
-            break;
-        case CONCEPT_FADD:
-            concept_fadd(stack);
-            break;
-        case CONCEPT_FDIV:
-            concept_fdiv(stack);
-            break;
-        case CONCEPT_FMUL:
-            concept_fmul(stack);
-            break;
-        case CONCEPT_ILT:
-            concept_ilt(stack);
-            break;
-        case CONCEPT_IEQ:
-            concept_ieq(stack);
-            break;
-        case CONCEPT_IGT:
-            concept_igt(stack);
-            break;
-        case CONCEPT_FLT:
-            concept_flt(stack);
-            break;
-        case CONCEPT_FEQ:
-            concept_feq(stack);
-            break;
-        case CONCEPT_FGT:
-            concept_fgt(stack);
-            break;
-        case CONCEPT_AND:
-            concept_and(stack);
-            break;
-        case CONCEPT_OR:
-            concept_or(stack);
-            break;
-        case CONCEPT_XOR:
-            concept_xor(stack);
-            break;
-        case CONCEPT_NE:
-            concept_ne(stack);
-            break;
-        case CONCEPT_IF:
-            concept_if(stack);
-            break;
-        case CONCEPT_CCONST:
-            concept_cconst(stack, (char)(cbp->value));
-            break;
-        case CONCEPT_ICONST:
-            concept_iconst(stack, (*(int32_t *)(cbp->value)));
-            break;
-        case CONCEPT_SCONST:
-            concept_sconst(stack, (char *)(cbp->value));
-            break;
-        case CONCEPT_FCONST:
-            concept_fconst(stack, (*(float *)(cbp->value)));
-            break;
-        case CONCEPT_BCONST:
-            concept_bconst(stack, (BOOL)(cbp->value));
-            break;
-        case CONCEPT_VCONST:
-            concept_vconst(stack, cbp->value);
-            break;
-        case CONCEPT_PRINT:
-            concept_print(stack);
-            break;
-        case CONCEPT_POP:
-            concept_pop(stack);
-            break;
-        default:
-            break; // do nothing
+// TODO implement iterator
+void* event_loop(ConceptBytecode_t cbp[], ConceptStack_t *stack, ConceptStack_t *global_stack) { // TODO
+    ConceptStack_t call_stack; // if any
+    for(int i = 0; i < (sizeof(cbp)/sizeof(ConceptBytecode_t)); i++) {
+        switch (cbp->instruction) {
+            case CONCEPT_IADD:
+                concept_iadd(stack);
+                break;
+            case CONCEPT_IDIV:
+                concept_idiv(stack);
+                break;
+            case CONCEPT_IMUL:
+                concept_imul(stack);
+                break;
+            case CONCEPT_FADD:
+                concept_fadd(stack);
+                break;
+            case CONCEPT_FDIV:
+                concept_fdiv(stack);
+                break;
+            case CONCEPT_FMUL:
+                concept_fmul(stack);
+                break;
+            case CONCEPT_ILT:
+                concept_ilt(stack);
+                break;
+            case CONCEPT_IEQ:
+                concept_ieq(stack);
+                break;
+            case CONCEPT_IGT:
+                concept_igt(stack);
+                break;
+            case CONCEPT_FLT:
+                concept_flt(stack);
+                break;
+            case CONCEPT_FEQ:
+                concept_feq(stack);
+                break;
+            case CONCEPT_FGT:
+                concept_fgt(stack);
+                break;
+            case CONCEPT_AND:
+                concept_and(stack);
+                break;
+            case CONCEPT_OR:
+                concept_or(stack);
+                break;
+            case CONCEPT_XOR:
+                concept_xor(stack);
+                break;
+            case CONCEPT_NE:
+                concept_ne(stack);
+                break;
+            case CONCEPT_IF:
+                concept_if(stack);
+                break;
+            case CONCEPT_CCONST:
+                concept_cconst(stack, (char) (cbp->value));
+                break;
+            case CONCEPT_ICONST:
+                concept_iconst(stack, (*(int32_t *) (cbp->value)));
+                break;
+            case CONCEPT_SCONST:
+                concept_sconst(stack, (char *) (cbp->value));
+                break;
+            case CONCEPT_FCONST:
+                concept_fconst(stack, (*(float *) (cbp->value)));
+                break;
+            case CONCEPT_BCONST:
+                concept_bconst(stack, (BOOL) (cbp->value));
+                break;
+            case CONCEPT_VCONST:
+                concept_vconst(stack, cbp->value);
+                break;
+            case CONCEPT_PRINT:
+                concept_print(stack);
+                break;
+            case CONCEPT_POP:
+                concept_pop(stack);
+                break;
+            case CONCEPT_GLOAD:
+                stack_push(stack, stack_pop(global_stack));
+            case CONCEPT_GSTORE:
+                stack_push(global_stack, stack_pop(stack));
+            case CONCEPT_CALL:
+                stack_alloc(&call_stack, CONCEPTFP_MAX_LENGTH);
+                void *ret_val = event_loop(procedure_call_lookup((char *) (cbp->value)), &call_stack, global_stack);
+                stack_push(stack, ret_val);
+            case CONCEPT_RETURN:
+                break;
+            default:
+                on_error(CONCEPT_COMPILER_ERROR, "Error: Unknown instruction", CONCEPT_STATE_CATASTROPHE,
+                         CONCEPT_ABORT);
+                break; // do nothing
+        }
     }
+     return stack_pop(stack); // TODO TODO redesign this function.
 }
 
 void cleanup(ConceptStack_t *global_stack) {
@@ -934,7 +964,7 @@ void cleanup(ConceptStack_t *global_stack) {
 }
 
 // parse() called after initializing concept_program global val
-ConceptBytecode_t * parse(){
+ConceptBytecode_t ** parse(){
     ConceptBytecode_t* bytecodes = malloc(sizeof(ConceptBytecode_t) * (concept_program.len));
     for(int i = 0; i < concept_program.len; i++) {
         int counter;
@@ -985,7 +1015,17 @@ ConceptBytecode_t * parse(){
         char *param = substring(str, (counter + 1), (int)strlen(str));
         bytecodes[i].value = param;
     }
-    return bytecodes;
+    //return bytecodes;
+
+    // TODO parse functions
+    int procedures_count = 1; // TODO not feasible, must implement in THE LOOP
+    // Implementation Notes
+    // bytecode_groups shall directly be pointed to each group of bytecodes, serving in lieu of the bytecodes array
+    // The code below is simply a temporary solution for the sake of implementation of the Event Loop.
+    // Another struct needs to be constructed to store the function's name or address for the call cmd to look upon.
+    ConceptBytecode_t **bytecode_groups = (ConceptBytecode_t **)rmalloc(sizeof(ConceptBytecode_t *));
+    bytecode_groups[0] = bytecodes;
+    return bytecode_groups;
 }
 
 void run(char *arg) {
@@ -994,8 +1034,22 @@ void run(char *arg) {
     if(concept_program.code == NULL || concept_program.len == 0 || concept_program.len == -1)
         on_error(CONCEPT_COMPILER_ERROR, "Input program not found.",  CONCEPT_STATE_CATASTROPHE, CONCEPT_ABORT);
 
-
-
+    // Allocate the two stacks
+    // -=-=-=-=-=-=-=-=-=-=-=-
+    // Two stacks are needed in order to simulate a Turing-complete machine in theoretical Computer Science.
+    // The Turing machine defines a tape running through a conceptual machine with  two sides
+    // which the machine can have RANDOM, COMPLETE/INFINITE memory access
+    // One stack only simulates one side of the Turing machine.
+    // We'll need two stacks on both sides in theory to gain the full potential of a 2xPDA which is Turing-Equivalent.
+    // Here we allocate two stacks, one global stack and one instruction stack for future use.
+    ConceptStack_t i_stack;
+    ConceptStack_t f_stack;
+    stack_alloc(&i_stack, (size_t)CONCEPTIP_MAX_LENGTH);
+    stack_alloc(&f_stack, (size_t)CONCEPTFP_MAX_LENGTH); // TODO TODO TODO
+    ConceptBytecode_t **bytecodes = parse();
+    event_loop(bytecodes[0], &f_stack, &i_stack);
+    cleanup(&i_stack);
+    cleanup(&f_stack);
 }
 
 int32_t main(int32_t argc, char **argv) { // test codes here!
