@@ -180,12 +180,13 @@ typedef struct {
     void *payload;
 } ConceptInstruction_t;
 
-BOOL is_running;
-
-void **symbols_list;
 
 char **procedure_call_table;
 static int procedure_call_table_length;
+
+int *procedure_length_table;
+
+ConceptInstruction_t **program;
 
 /*
  * Stack Operations Functions
@@ -798,10 +799,17 @@ int32_t concept_debug() {
 
 // Iterating event loop
 // TODO implement iterator
-void* event_loop(ConceptBytecode_t cbp[], ConceptStack_t *stack, ConceptStack_t *global_stack) { // TODO
+void* eval(int index, ConceptStack_t *stack, ConceptStack_t *global_stack) { // TODO
+
+
     ConceptStack_t call_stack; // if any
-    for(int i = 0; i < (sizeof(cbp)/sizeof(ConceptBytecode_t)); i++) {
-        switch (cbp->instruction) {
+
+    if(program[0] == NULL) on_error(CONCEPT_COMPILER_ERROR, "struct ConceptInstruction_t blank.", CONCEPT_ABORT, CONCEPT_STATE_CATASTROPHE);
+
+
+
+    for(int i = 0; i < procedure_length_table[index]; i++) {
+        switch (program[index][i].instr) {
             case CONCEPT_IADD:
                 concept_iadd(stack);
                 break;
@@ -854,22 +862,22 @@ void* event_loop(ConceptBytecode_t cbp[], ConceptStack_t *stack, ConceptStack_t 
                 concept_if(stack);
                 break;
             case CONCEPT_CCONST:
-                concept_cconst(stack, (char) (cbp->value));
+                concept_cconst(stack,  (*(char *) (program[index][i].payload)));
                 break;
             case CONCEPT_ICONST:
-                concept_iconst(stack, (*(int32_t *) (cbp->value)));
+                concept_iconst(stack, (*(int32_t *)(program[index][i].payload)));
                 break;
             case CONCEPT_SCONST:
-                concept_sconst(stack, (char *) (cbp->value));
+                concept_sconst(stack, (char *)(program[index][i].payload));
                 break;
             case CONCEPT_FCONST:
-                concept_fconst(stack, (*(float *) (cbp->value)));
+                concept_fconst(stack, (*(float *)(program[index][i].payload)));
                 break;
             case CONCEPT_BCONST:
-                concept_bconst(stack, (BOOL) (cbp->value));
+                concept_bconst(stack, (*(BOOL *)(program[index][i].payload)));
                 break;
             case CONCEPT_VCONST:
-                concept_vconst(stack, cbp->value);
+                //concept_vconst(stack, program[index][i].payload);
                 break;
             case CONCEPT_PRINT:
                 concept_print(stack);
@@ -883,7 +891,7 @@ void* event_loop(ConceptBytecode_t cbp[], ConceptStack_t *stack, ConceptStack_t 
                 stack_push(global_stack, stack_pop(stack));
             case CONCEPT_CALL:
                 stack_alloc(&call_stack, CONCEPTFP_MAX_LENGTH);
-                // TODO void *ret_val = event_loop(/*todo*/), &call_stack, global_stack);
+                stack_push(stack, eval((*(int32_t *)(program[index][i].payload)), &call_stack, global_stack));
                 // stack_push(stack, ret_val);
             case CONCEPT_RETURN:
                 break;
@@ -1000,7 +1008,7 @@ void read_prog(char *file_path) {
 // array
 // TODO: finally the interpreter will perform inline expansion on all calls to make the destination procedure's name NOT
 // the String name, but the ACTUAL address of the bytecode procedure, which in turn makes an O(n) + O(1) complexity an O(1) complexity
-ConceptInstruction_t** parse_procedures() {
+void parse_procedures() {
     int how_many_procedures = 0;
     for(int d = 0; d < concept_program.len; d++) {
         if(strstr(concept_program.code[d], "procedure")) {
@@ -1022,6 +1030,7 @@ ConceptInstruction_t** parse_procedures() {
     procedure_call_table_length = prog_counter;
 
     ConceptInstruction_t **compiled_bytecode_collection = (ConceptInstruction_t **)rmalloc(sizeof(ConceptInstruction_t *)* prog_counter);
+    procedure_length_table = (int *)rmalloc(sizeof(int)*prog_counter);
     int procedure_counter = 0;
     for(int j = 0; j < concept_program.len; j++) {
         if(strstr(concept_program.code[j], "procedure")) {
@@ -1030,6 +1039,7 @@ ConceptInstruction_t** parse_procedures() {
             int i = j;
             for(j; !strstr(concept_program.code[j], "ret"); j++);
             int procedure_len = j - i;
+            procedure_length_table[procedure_counter] = procedure_len;
             char *prog_name_line = concept_program.code[i];
 
 
@@ -1161,7 +1171,9 @@ ConceptInstruction_t** parse_procedures() {
             procedure_counter++;
         }
 
-        return compiled_bytecode_collection;
+        program = compiled_bytecode_collection;
+
+        // return compiled_bytecode_collection;
     }
 }
 
@@ -1180,14 +1192,22 @@ void run(char *arg) {
     // One stack only simulates one side of the Turing machine.
     // We'll need two stacks on both sides in theory to gain the full potential of a 2xPDA which is Turing-Equivalent.
     // Here we allocate two stacks, one global stack and one instruction stack for future use.
+
     ConceptStack_t i_stack;
     ConceptStack_t f_stack;
     stack_alloc(&i_stack, (size_t)CONCEPTIP_MAX_LENGTH);
     stack_alloc(&f_stack, (size_t)CONCEPTFP_MAX_LENGTH); // TODO TODO TODO
+
     //ConceptBytecode_t **bytecodes = parse();
     //event_loop(bytecodes[0], &f_stack, &i_stack);
+
+    parse_procedures();
+
+    eval(0, &f_stack, &i_stack);
+
     cleanup(&i_stack);
     cleanup(&f_stack);
+    memfree();
 }
 
 int32_t main(int32_t argc, char **argv) { // test codes here!
