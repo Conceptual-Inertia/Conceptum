@@ -1,4 +1,5 @@
-# Conceptum
+# Conceptum[![DOI](https://zenodo.org/badge/68675170.svg)](https://zenodo.org/badge/latestdoi/68675170)
+
 Conceptum is a stack-based, lightweight, Turing-equivalent virtual machine running a small set of bytecodes for benchmarking VM performance.
 
 ## Technical details
