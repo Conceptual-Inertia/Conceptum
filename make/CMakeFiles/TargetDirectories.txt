@@ -1,0 +1,3 @@
+/home/alex/Projects/Conceptum/make/CMakeFiles/edit_cache.dir
+/home/alex/Projects/Conceptum/make/CMakeFiles/rebuild_cache.dir
+/home/alex/Projects/Conceptum/make/CMakeFiles/Conceptum.dir
