@@ -19,7 +19,6 @@
 #include <string.h>
 
 #include "memman.h"
-#include "conceptlint.h"
 
 // Limits
 
@@ -178,6 +177,39 @@ int32_t *procedure_length_table;
 int32_t procedure_length_table_length;
 
 ConceptInstruction_t **program;
+
+/*
+ * Utility Functions (Might not be used at all)
+ * but for nominative references
+ */
+
+
+int is_void(char *s) {
+    while (*s != '\0') {
+        if (!isspace(*s))
+            return 0;
+        s++;
+    }
+    return 1;
+}
+
+int is_int(char *tbd) {
+    char *rmvd_tbd = remove_spaces(tbd);
+    return isdigit(atoi(rmvd_tbd));
+}
+
+int is_char(char *tbd) {
+    char *rmvd_tbd = remove_spaces(tbd);
+    return (strlen(rmvd_tbd) == 1 | strlen(rmvd_tbd) == 0);
+}
+
+int is_float(char *tbd) {
+    double d = FLT_MAX;
+    d = strtod(tbd, NULL);
+    return ((d > 0 && (d > FLT_MAX || d < FLT_MIN))
+            || (d < 0 && (d < -FLT_MAX || d > -FLT_MIN)));
+}
+
 
 /*
  * Stack Operations Functions
@@ -926,7 +958,7 @@ void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                 concept_dupl(stack);
                 break;
             case CONCEPT_IF_ICMPLE:
-                
+
                 break;
             case CONCEPT_GOTO:
                 return eval(((int32_t*)(program[index][i].payload))[0], stack, global_stack, ((int32_t*)(program[index][i].payload))[1]);
