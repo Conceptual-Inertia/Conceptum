@@ -1,0 +1,13 @@
+procedure main
+iconst 1
+iconst 2
+iconst 3
+iconst 4
+iconst 5
+iconst 6
+iconst 7
+iconst 8
+iadd
+iadd
+halt
+ret
