@@ -65,10 +65,3 @@ void* rrealloc(void *ptr, size_t size) {
     memreg(ptr);
     return ptr;
 }
-
-int main() {
-    void *ptr = rmalloc((size_t)1000);
-    printf("%lu", sizeof(ptr));
-    memfree();
-    return 0;
-}
