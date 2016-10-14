@@ -14,15 +14,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <limits.h>
 #include <float.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "memman.h"
 #include "conceptlint.h"
-#include "assembler.h"
 
 // Limits
 
@@ -51,7 +48,7 @@
 #define CONCEPT_OR  113 // Boolean OR  OUTPUT: Boolean
 #define CONCEPT_XOR 114 // Boolean XOR OUTPUT: Boolean
 #define CONCEPT_NE  115 // Boolean NE  OUTPUT: Boolean
-#define CONCEPT_IF  116 // Boolean IF  OUTPUT: Boolean // TODO
+#define CONCEPT_IF  116 // Boolean IF  OUTPUT: Boolean
 
 #define CONCEPT_CCONST 117 // Initialize Char Constant OUTPUT: Void
 #define CONCEPT_ICONST 118 // Initialize Integer Constant OUTPUT: Void
@@ -60,19 +57,18 @@
 #define CONCEPT_BCONST 121 // Initialize Boolean Constant OUTPUT: Void
 #define CONCEPT_VCONST 122 // Initialize Void Constant OUTPUT: Void
 
-#define CONCEPT_PROCEDURE 123 // Initialize Concept Function OUTPUT: Void
-#define CONCEPT_PRINT 124 // Print to stdout OUTPUT: Void
-#define CONCEPT_CALL 125 // Call a procedure(void *)
-#define CONCEPT_LOAD 126 // Load value
-#define CONCEPT_STORE 127 // Store value
-#define CONCEPT_FLOAD 128 // Load float value
-#define CONCEPT_FSTORE 129 // Store float value
-#define CONCEPT_GLOAD 130 // Load global value
-#define CONCEPT_GSTORE 131 // Store global value
-#define CONCEPT_POP 132 // Pop a value out of stack
-#define CONCEPT_IF_ICMPLE 133 // if_icmple
-#define CONCEPT_GOTO 134 // Goto Statement
-#define CONCEPT_RETURN 135 // Return
+#define CONCEPT_PRINT 123 // Print to stdout OUTPUT: Void
+#define CONCEPT_CALL 124 // Call a procedure(void *)
+#define CONCEPT_GLOAD 127 // Load global value
+#define CONCEPT_GSTORE 128 // Store global value
+#define CONCEPT_POP 129 // Pop a value out of stack
+#define CONCEPT_IF_ICMPLE 130 // if_icmple
+#define CONCEPT_GOTO 131 // Goto Statement
+#define CONCEPT_RETURN 132 // Return
+#define CONCEPT_INC 133
+#define CONCEPT_DEC 134
+#define CONCEPT_DUP 135
+#define CONCEPT_SWAP 136
 
 /* ========================
  * Error handling functions
@@ -164,15 +160,9 @@ typedef struct {
     void *(*operand_stack);
 } ConceptStack_t;
 
-// Conceptual bytecode
-typedef struct {
-    int32_t instruction;
-    void *value; // if any
-} ConceptBytecode_t;
-
-struct ConceptProgram_t {
+struct {
     char **code;
-    int len;
+    int32_t len;
 } concept_program;
 
 typedef struct {
@@ -182,9 +172,10 @@ typedef struct {
 
 
 char **procedure_call_table;
-static int procedure_call_table_length;
+int32_t procedure_call_table_length;
 
-int *procedure_length_table;
+int32_t *procedure_length_table;
+int32_t procedure_length_table_length;
 
 ConceptInstruction_t **program;
 
@@ -266,7 +257,6 @@ static void* stack_pop(ConceptStack_t *stack) {
 
 // IADD Integer addition function
 void concept_iadd(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_IADD; // for debugging purposes
     int32_t a = *((int32_t *)stack_pop(stack));
     int32_t b = *((int32_t *)stack_pop(stack)); // pop again for another value
 
@@ -293,7 +283,6 @@ void concept_iadd(ConceptStack_t *stack) {
 
 // IDIV Integer division function
 void concept_idiv(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_IDIV;
     int32_t a = *((int32_t *)stack_pop(stack));
     int32_t b = *((int32_t *)stack_pop(stack)); // pop again for another value
 
@@ -319,7 +308,6 @@ void concept_idiv(ConceptStack_t *stack) {
 
 // IMUL Integer Multiplication function
 void concept_imul(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_IMUL;
     int32_t a = *((int32_t *)stack_pop(stack));
     int32_t b = *((int32_t *)stack_pop(stack)); // pop again for another value
 
@@ -346,7 +334,6 @@ void concept_imul(ConceptStack_t *stack) {
 
 // FADD Floating point addition function
 void concept_fadd(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_FADD;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
@@ -372,7 +359,6 @@ void concept_fadd(ConceptStack_t *stack) {
 
 // FDIV Floating point division function
 void concept_fdiv(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_FDIV;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
@@ -398,7 +384,6 @@ void concept_fdiv(ConceptStack_t *stack) {
 
 // FMUL Floating point multiplication function
 void concept_fmul(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_FMUL;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
@@ -425,7 +410,6 @@ void concept_fmul(ConceptStack_t *stack) {
 
 // ILT Integer Less Than comparison function
 void concept_ilt(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_ILT;
     int32_t a = *((int32_t *)stack_pop(stack));
     int32_t b = *((int32_t *)stack_pop(stack));
 
@@ -452,7 +436,6 @@ void concept_ilt(ConceptStack_t *stack) {
 
 // IEQ Integer Equality comparison function
 void concept_ieq(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_IEQ;
     int32_t a = *((int32_t *)stack_pop(stack));
     int32_t b = *((int32_t *)stack_pop(stack));
 
@@ -477,7 +460,6 @@ void concept_ieq(ConceptStack_t *stack) {
 
 // IGT Integer Greater Than comparison function
 void concept_igt(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_IGT;
     int32_t a = *((int32_t *)stack_pop(stack));
     int32_t b = *((int32_t *)stack_pop(stack));
 
@@ -502,7 +484,6 @@ void concept_igt(ConceptStack_t *stack) {
 
 // FLT Floating point Less Than comparison function
 void concept_flt(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_FLT;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
@@ -527,7 +508,6 @@ void concept_flt(ConceptStack_t *stack) {
 
 // FEQ Floating point Equality comparison function
 void concept_feq(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_FEQ;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
@@ -552,7 +532,6 @@ void concept_feq(ConceptStack_t *stack) {
 
 // FGT Floating point Greater Than comparison function
 void concept_fgt(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_FGT;
     float a = *((float *)stack_pop(stack));
     float b = *((float *)stack_pop(stack));
 
@@ -577,7 +556,6 @@ void concept_fgt(ConceptStack_t *stack) {
 
 // AND
 void concept_and(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_AND;
 
     if(DEBUG) printf("\nAND");
 
@@ -592,7 +570,6 @@ void concept_and(ConceptStack_t *stack) {
 
 // OR
 void concept_or(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_OR;
 
     if(DEBUG) printf("\nOR");
 
@@ -607,7 +584,6 @@ void concept_or(ConceptStack_t *stack) {
 
 // XOR
 void concept_xor(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_XOR;
 
     int32_t p = *(int32_t *) stack_pop(stack);
     int32_t q = *(int32_t *) stack_pop(stack);
@@ -625,7 +601,6 @@ void concept_xor(ConceptStack_t *stack) {
 
 // NE
 void concept_ne(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_NE;
 
     int32_t p = (*(int32_t *)stack_pop(stack));
 
@@ -642,7 +617,6 @@ void concept_ne(ConceptStack_t *stack) {
 
 // IF
 void concept_if(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_IF;
 
     int32_t p = *(int32_t *) stack_pop(stack);
     int32_t q = *(int32_t *) stack_pop(stack);
@@ -659,7 +633,6 @@ void concept_if(ConceptStack_t *stack) {
 }
 
 void concept_cconst(ConceptStack_t *stack, char c) {
-    int32_t type = CONCEPT_CCONST;
 
     if(DEBUG) printf("\nCCONST %c", c);
 
@@ -671,7 +644,6 @@ void concept_cconst(ConceptStack_t *stack, char c) {
 }
 
 void concept_iconst(ConceptStack_t *stack, int32_t i) {
-    int32_t type = CONCEPT_ICONST;
 
     if(DEBUG) printf("\nICONST %d", i);
 
@@ -682,7 +654,6 @@ void concept_iconst(ConceptStack_t *stack, int32_t i) {
 }
 
 void concept_sconst(ConceptStack_t *stack, char *s) {
-    int32_t type = CONCEPT_SCONST;
 
     if(DEBUG) {
         printf("\nSCONST\n");
@@ -699,7 +670,6 @@ void concept_sconst(ConceptStack_t *stack, char *s) {
 }
 
 void concept_fconst(ConceptStack_t *stack, float f) {
-    int32_t type = CONCEPT_FCONST;
 
     if(DEBUG) printf("\nFCONST %f", f);
 
@@ -711,7 +681,6 @@ void concept_fconst(ConceptStack_t *stack, float f) {
 
 
 void concept_bconst(ConceptStack_t *stack, BOOL b) {
-    int32_t type = CONCEPT_BCONST;
 
     if(DEBUG) printf("\nBCONST %d", b);
 
@@ -722,7 +691,6 @@ void concept_bconst(ConceptStack_t *stack, BOOL b) {
 }
 
 void concept_vconst(ConceptStack_t *stack, void *v) {
-    int32_t type = CONCEPT_VCONST;
 
     if(DEBUG) printf("\nVCONST bla bla bla... @ addr %p", v);
 
@@ -736,15 +704,63 @@ void concept_vconst(ConceptStack_t *stack, void *v) {
 }
 
 void concept_print(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_PRINT;
     if(!stack_is_empty(stack))
         printf("%s", ((char *)stack->operand_stack[stack->top]));
 }
 
 void * concept_pop(ConceptStack_t *stack) {
-    int32_t type = CONCEPT_POP;
     void *val = stack_pop(stack);
     return val;
+}
+
+void concept_incr(ConceptStack_t *stack) {
+    int32_t *i = (int32_t*)rmalloc(sizeof(int32_t));
+    *i = *((int32_t *)(stack_pop(stack))) + 1;
+    stack_push(stack, i);
+}
+
+void concept_decr(ConceptStack_t *stack) {
+    int32_t *i = (int32_t*)rmalloc(sizeof(int32_t));
+    *i = *((int32_t *)(stack_pop(stack))) - 1;
+    stack_push(stack, i);
+}
+
+void concept_swap(ConceptStack_t *stack) {
+    int32_t i = *((int32_t *)(stack_pop(stack)));
+    int32_t j = *((int32_t *)(stack_pop(stack)));
+    int32_t *k = (int32_t *)rmalloc(sizeof(int32_t));
+    *k = i + j;
+    stack_push(stack, k);
+}
+
+void concept_dupl(ConceptStack_t *stack) {
+    void *v = stack_pop(stack);
+    // duplicate
+    stack_push(stack, v);
+    stack_push(stack, v);
+
+}
+
+int32_t* go_to(int32_t line_number) { // TODO TODO
+
+    int32_t cumulative_line_count = 0;
+
+    for(int32_t findex = 0; findex < procedure_length_table_length; findex++) {
+        cumulative_line_count += procedure_length_table[findex];
+        int32_t next_cum_len = cumulative_line_count + procedure_length_table[findex+1];
+        if(line_number >= cumulative_line_count && line_number <= next_cum_len) {
+            // in this procedure!
+            int32_t pc_line = (line_number - cumulative_line_count);
+            int32_t *rtn = (int32_t *)rmalloc(sizeof(int32_t)*3);
+            rtn[0] = findex;
+            rtn[1] = pc_line;
+            rtn[2] = (-1);
+            return rtn;
+        }
+    }
+    // not a valid go to
+    on_error(CONCEPT_COMPILER_ERROR, " goto statement not valid.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
+    return 0; // to satisfy IDE
 }
 
 /*
@@ -799,16 +815,17 @@ int32_t concept_debug() {
 
 // Iterating event loop
 // TODO implement iterator
-void* eval(int index, ConceptStack_t *stack, ConceptStack_t *global_stack) { // TODO
+void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t start_by) { // TODO
 
 
     ConceptStack_t call_stack; // if any
 
     if(program[0] == NULL) on_error(CONCEPT_COMPILER_ERROR, "struct ConceptInstruction_t blank.", CONCEPT_ABORT, CONCEPT_STATE_CATASTROPHE);
 
+    int32_t goto_dispatch_line = 0;
 
 
-    for(int i = 0; i < procedure_length_table[index]; i++) {
+    for(int32_t i = start_by; i < procedure_length_table[index]; i++) {
         switch (program[index][i].instr) {
             case CONCEPT_IADD:
                 concept_iadd(stack);
@@ -887,14 +904,37 @@ void* eval(int index, ConceptStack_t *stack, ConceptStack_t *global_stack) { // 
                 break;
             case CONCEPT_GLOAD:
                 stack_push(stack, stack_pop(global_stack));
+                break;
             case CONCEPT_GSTORE:
                 stack_push(global_stack, stack_pop(stack));
+                break;
             case CONCEPT_CALL:
                 stack_alloc(&call_stack, CONCEPTFP_MAX_LENGTH);
-                stack_push(stack, eval((*(int32_t *)(program[index][i].payload)), &call_stack, global_stack));
+                stack_push(stack, eval((*(int32_t *)(program[index][i].payload)), &call_stack, global_stack, 0));
                 // stack_push(stack, ret_val);
-            case CONCEPT_RETURN:
                 break;
+            case CONCEPT_INC:
+                concept_incr(stack);
+                break;
+            case CONCEPT_DEC:
+                concept_decr(stack);
+                break;
+            case CONCEPT_SWAP:
+                concept_swap(stack);
+                break;
+            case CONCEPT_DUP:
+                concept_dupl(stack);
+                break;
+            case CONCEPT_IF_ICMPLE:
+                
+                break;
+            case CONCEPT_GOTO:
+                return eval(((int32_t*)(program[index][i].payload))[0], stack, global_stack, ((int32_t*)(program[index][i].payload))[1]);
+                break;
+            case CONCEPT_HALT:
+                on_error(CONCEPT_GENERAL_ERROR, " Exit by HALT.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
+            case CONCEPT_RETURN:
+                break; // DO NOTHING
             default:
                 on_error(CONCEPT_COMPILER_ERROR, "Error: Unknown instruction", CONCEPT_STATE_CATASTROPHE,
                          CONCEPT_ABORT);
@@ -910,7 +950,7 @@ void cleanup(ConceptStack_t *global_stack) {
 }
 
 
-char* substring(char *string, int start, int end) {
+char* substring(char *string, int32_t start, int32_t end) {
     char* subbuff = malloc(sizeof(char) * (end - start));
     memcpy(subbuff, &string[start], (end - start));
     subbuff[end - start] = '\0';
@@ -920,7 +960,7 @@ char* substring(char *string, int start, int end) {
 
 char* remove_spaces(char *src){
     char *dst;
-    int s, d=0;
+    int32_t s, d=0;
     for (s=0; src[s] != 0; s++)
         if (src[s] != ' ' && src[s] != '\t') {
             dst[d] = src[s];
@@ -931,8 +971,8 @@ char* remove_spaces(char *src){
 }
 
 void read_prog(char *file_path) {
-    int lines_allocated = 128;
-    int max_line_len = 100;
+    int32_t lines_allocated = 128;
+    int32_t max_line_len = 100;
 
     /* Allocate lines of text */
     char **words = (char **)rmalloc(sizeof(char*)*lines_allocated);
@@ -947,13 +987,13 @@ void read_prog(char *file_path) {
         exit(2);
     }
 
-    int i;
+    int32_t i;
     for (i=0;1;i++) {
-        int j;
+        int32_t j;
 
         /* Have we gone over our line allocation? */
         if (i >= lines_allocated) {
-            int new_size;
+            int32_t new_size;
 
             /* Double our allocation and re-allocate */
             new_size = lines_allocated*2;
@@ -989,7 +1029,7 @@ void read_prog(char *file_path) {
     concept_program.code = words;
     concept_program.len = i;
 
-    //int j;
+    //int32_t j;
     //for(j = 0; j < i; j++)
     //    printf("%s\n", words[j]);
 
@@ -1006,18 +1046,18 @@ void read_prog(char *file_path) {
 // After that a bytecode array is constructed
 // A similar array of strings ^^ procedure_call_table is also constructed in order to map the value of a function to its address in the bytecode
 // array
-// TODO: finally the interpreter will perform inline expansion on all calls to make the destination procedure's name NOT
+// finally the interpreter will perform inline expansion on all calls to make the destination procedure's name NOT
 // the String name, but the ACTUAL address of the bytecode procedure, which in turn makes an O(n) + O(1) complexity an O(1) complexity
 void parse_procedures() {
-    int how_many_procedures = 0;
-    for(int d = 0; d < concept_program.len; d++) {
+    int32_t how_many_procedures = 0;
+    for(int32_t d = 0; d < concept_program.len; d++) {
         if(strstr(concept_program.code[d], "procedure")) {
             how_many_procedures++;
         }
     }
     procedure_call_table = (char **)rmalloc(sizeof(char *)*how_many_procedures);
-    int prog_counter = 0;
-    for(int d = 0; d < concept_program.len; d++) {
+    int32_t prog_counter = 0;
+    for(int32_t d = 0; d < concept_program.len; d++) {
         if(strstr(concept_program.code[d], "procedure")) {
             char *proc = concept_program.code[d];
             char *proc_w_s = remove_spaces(proc);
@@ -1030,15 +1070,16 @@ void parse_procedures() {
     procedure_call_table_length = prog_counter;
 
     ConceptInstruction_t **compiled_bytecode_collection = (ConceptInstruction_t **)rmalloc(sizeof(ConceptInstruction_t *)* prog_counter);
-    procedure_length_table = (int *)rmalloc(sizeof(int)*prog_counter);
-    int procedure_counter = 0;
-    for(int j = 0; j < concept_program.len; j++) {
+    procedure_length_table = (int32_t *)rmalloc(sizeof(int32_t)*prog_counter);
+    procedure_length_table_length = prog_counter;
+    int32_t procedure_counter = 0;
+    for(int32_t j = 0; j < concept_program.len; j++) { // read in the procedure(s)
         if(strstr(concept_program.code[j], "procedure")) {
             ConceptInstruction_t *procedure; // ConceptInstruction_t
-            int counter = 0;
-            int i = j;
+            int32_t counter = 0;
+            int32_t i = j;
             for(j; !strstr(concept_program.code[j], "ret"); j++);
-            int procedure_len = j - i;
+            int32_t procedure_len = j - i;
             procedure_length_table[procedure_counter] = procedure_len;
             char *prog_name_line = concept_program.code[i];
 
@@ -1048,16 +1089,16 @@ void parse_procedures() {
             for(i = i + 1; i <= j; i++) { // from the first line of program to the ret statement, read every line and parse
                 // parse, parse, parse!
                 char *s_line = concept_program.code[i];
-                int p;
+                int32_t p;
                 for(p = 0; p < strlen(s_line) && s_line[p] != ' ' && s_line[p] != '\t'; p++);
                 char *instr = (char *)rmalloc(sizeof(char) * p);
-                for(int q = 0; q < p; q++) instr[q] = s_line[q];
-                int param_flag = 0;
+                for(int32_t q = 0; q < p; q++) instr[q] = s_line[q];
+                int32_t param_flag = 0;
                 char *param;
                 if(strlen(s_line) - p > 0) {
                     param_flag = 1;
                     param = (char *)rmalloc(sizeof(char)*(strlen(s_line)-p));
-                    int r = 0;
+                    int32_t r = 0;
                     for(p = p + 1; p < strlen(s_line); p++) {
                         param[r] = s_line[p];
                         r++;
@@ -1091,7 +1132,7 @@ void parse_procedures() {
                 } else if(!strcmp(instr, "iconst")) {
                     procedure[i].instr = CONCEPT_ICONST;
                     if(!param_flag) exit(130);
-                    int32_t *a = rmalloc(sizeof(int));
+                    int32_t *a = rmalloc(sizeof(int32_t));
                     *a = atoi(param);
                     procedure[i].payload = (void *)a;
                 } else if(!strcmp(instr, "sconst")) {
@@ -1121,22 +1162,22 @@ void parse_procedures() {
                 } else if(!strcmp(instr, "goto")) {
                     procedure[i].instr = CONCEPT_GOTO;
                     if(!param_flag) exit(130);
-                    int32_t *goto_line_num = rmalloc(sizeof(int32_t));
-                    *goto_line_num = atoi(param);
-                    procedure[i].payload = goto_line_num;
+                    int32_t goto_line_num = atoi(param);
+                    int32_t *gif = go_to(goto_line_num);
+                    procedure[i].payload = (void *)gif;
                 } else if(!strcmp(instr, "if_icmple")) {
                     procedure[i].instr = CONCEPT_IF_ICMPLE;
                     if(!param_flag) exit(130);
-                    int32_t *goto_line_num = rmalloc(sizeof(int32_t));
-                    *goto_line_num = atoi(param);
-                    procedure[i].payload = goto_line_num;
+                    int32_t goto_line_num = atoi(param);
+                    int32_t *gif = go_to(goto_line_num);
+                    procedure[i].payload = (void *)gif;
                 } else if(!strcmp(instr, "call")) {
                     procedure[i].instr = CONCEPT_CALL;
                     if(!param_flag) exit(130);
                     // perform an O(n) search to substitute in the actual position
                     int32_t *call_addr;
-                    int flag = 0;
-                    for(int m = 0; m < procedure_call_table_length; m++) {
+                    int32_t flag = 0;
+                    for(int32_t m = 0; m < procedure_call_table_length; m++) {
                         if(!strcmp(param, procedure_call_table[m])) {
                             // That's the procedure we want!
                             call_addr = (int32_t *)rmalloc(sizeof(int32_t));
@@ -1145,23 +1186,17 @@ void parse_procedures() {
                         }
                     }
                     if(!flag) { printf("Illegal call.\n"); exit(130); }
-                } else if(!strcmp(instr, "gstore")) {
-                    procedure[i].instr = CONCEPT_GSTORE;
-                    if(!param_flag) exit(130);
-                    int32_t *gstore_var = rmalloc(sizeof(int32_t));
-                    *gstore_var = atoi(param);
-
-                } else if(!strcmp(instr, "fstore")) {
-                    procedure[i].instr = CONCEPT_FSTORE;
-                    if(!param_flag) exit(130);
-
-                    float *f = rmalloc(sizeof(float));
-                    *f = (float)atof(param);
-                    procedure[i].payload = (void *)f;
-
-
-                } else if(!strcmp(instr, "fload")) procedure[i].instr = CONCEPT_FLOAD;
+                } else if(!strcmp(instr, "gstore")) procedure[i].instr = CONCEPT_GSTORE;
                 else if(!strcmp(instr, "gload")) procedure[i].instr = CONCEPT_GLOAD;
+                else if(!strcmp(instr, "ret")) {
+                    procedure[i].instr = CONCEPT_RETURN;
+                    break;
+                }
+                else if(!strcmp(instr, "inc")) procedure[i].instr = CONCEPT_INC;
+                else if(!strcmp(instr, "dec")) procedure[i].instr = CONCEPT_DEC;
+                else if(!strcmp(instr, "dup")) procedure[i].instr = CONCEPT_DUP;
+                else if(!strcmp(instr, "swap")) procedure[i].instr = CONCEPT_SWAP;
+                else if(!strcmp(instr, "halt")) procedure[i].instr = CONCEPT_HALT;
                 else exit(130); // ABRT
             }
 
