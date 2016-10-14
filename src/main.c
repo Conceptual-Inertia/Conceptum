@@ -70,6 +70,8 @@
 #define CONCEPT_DEC 134
 #define CONCEPT_DUP 135
 #define CONCEPT_SWAP 136
+#define CONCEPT_SHIFTL 137
+#define CONCEPT_SHIFTR 138
 
 /* ========================
  * Error handling functions
@@ -1194,116 +1196,116 @@ void parse_procedures() {
 
                 // The advent of a gigantic if... C switches doesn't support char*
                 if(!strcmp(instr, "iadd")) {
-                    procedure[i].instr = CONCEPT_IADD;
+                    procedure[i-1].instr = CONCEPT_IADD;
                     if(DEBUG) printf("\nlexer: PSA: Instr is IADD.");
                 } else if(!strcmp(instr, "idiv")) {
-                    procedure[i].instr = CONCEPT_IDIV;
+                    procedure[i-1].instr = CONCEPT_IDIV;
                     if(DEBUG) printf("\nlexer: PSA: Instr is IDIV.");
                 } else if(!strcmp(instr, "imul")) {
-                    procedure[i].instr = CONCEPT_IMUL;
+                    procedure[i-1].instr = CONCEPT_IMUL;
                     if(DEBUG) printf("\nlexer: PSA: Instr is IMUL.");
                 } else if(!strcmp(instr, "fadd")) {
-                    procedure[i].instr = CONCEPT_FADD;
+                    procedure[i-1].instr = CONCEPT_FADD;
                     if(DEBUG) printf("\nlexer: PSA: Instr is FADD.");
                 } else if(!strcmp(instr, "fdiv")) {
-                    procedure[i].instr = CONCEPT_FDIV;
+                    procedure[i-1].instr = CONCEPT_FDIV;
                     if(DEBUG) printf("\nlexer: PSA: Instr is FDIV.");
                 } else if(!strcmp(instr, "fmul")) {
-                    procedure[i].instr = CONCEPT_FMUL;
+                    procedure[i-1].instr = CONCEPT_FMUL;
                     if(DEBUG) printf("\nlexer: PSA: Instr is FMUL.");
                 } else if(!strcmp(instr, "ilt")) {
-                    procedure[i].instr = CONCEPT_ILT;
+                    procedure[i-1].instr = CONCEPT_ILT;
                     if(DEBUG) printf("\nlexer: PSA: Instr is ILT.");
                 } else if(!strcmp(instr, "ieq")) {
-                    procedure[i].instr = CONCEPT_IEQ;
+                    procedure[i-1].instr = CONCEPT_IEQ;
                     if(DEBUG) printf("\nlexer: PSA: Instr is IEQ.");
                 } else if(!strcmp(instr, "igt")) {
-                    procedure[i].instr = CONCEPT_IGT;
+                    procedure[i-1].instr = CONCEPT_IGT;
                     if(DEBUG) printf("\nlexer: PSA: Instr is IGT.");
                 } else if(!strcmp(instr, "flt")) {
-                    procedure[i].instr = CONCEPT_FLT;
+                    procedure[i-1].instr = CONCEPT_FLT;
                     if(DEBUG) printf("\nlexer: PSA: Instr is FLT.");
                 } else if(!strcmp(instr, "feq")) {
-                    procedure[i].instr = CONCEPT_FEQ;
+                    procedure[i-1].instr = CONCEPT_FEQ;
                     if(DEBUG) printf("\nlexer: PSA: Instr is FEQ.");
                 } else if(!strcmp(instr, "fgt")) {
-                    procedure[i].instr = CONCEPT_FGT;
+                    procedure[i-1].instr = CONCEPT_FGT;
                     if(DEBUG) printf("\nlexer: PSA: Instr is FGT.");
                 } else if(!strcmp(instr, "and")) {
-                    procedure[i].instr = CONCEPT_AND;
+                    procedure[i-1].instr = CONCEPT_AND;
                     if(DEBUG) printf("\nlexer: PSA: Instr is AND.");
                 } else if(!strcmp(instr, "or")) {
-                    procedure[i].instr = CONCEPT_OR;
+                    procedure[i-1].instr = CONCEPT_OR;
                     if(DEBUG) printf("\nlexer: PSA: Instr is OR.");
                 } else if(!strcmp(instr, "xor")) {
-                    procedure[i].instr = CONCEPT_XOR;
+                    procedure[i-1].instr = CONCEPT_XOR;
                     if(DEBUG) printf("\nlexer: PSA: Instr is XOR.");
                 } else if(!strcmp(instr, "ne")) {
-                    procedure[i].instr = CONCEPT_NE;
+                    procedure[i-1].instr = CONCEPT_NE;
                     if(DEBUG) printf("\nlexer: PSA: Instr is NE.");
                 } else if(!strcmp(instr, "if")) {
-                    procedure[i].instr = CONCEPT_IF;
+                    procedure[i-1].instr = CONCEPT_IF;
                     if(DEBUG) printf("\nlexer: PSA: Instr is IF.");
                 } else if(!strcmp(instr, "cconst")) {
-                    procedure[i].instr = CONCEPT_CCONST;
+                    procedure[i-1].instr = CONCEPT_CCONST;
                     if(!param_flag) exit(130);
                     char *c = rmalloc(sizeof(char));
                     *c = param[0];
-                    procedure[i].payload = (void *)c;
+                    procedure[i-1].payload = (void *)c;
                     if(DEBUG) printf("\nlexer: PSA: Instr is CCONST.");
                 } else if(!strcmp(instr, "iconst")) {
-                    procedure[i].instr = CONCEPT_ICONST;
+                    procedure[i-1].instr = CONCEPT_ICONST;
                     if(!param_flag) exit(130);
                     int32_t *a = rmalloc(sizeof(int32_t));
                     *a = atoi(param);
-                    procedure[i].payload = (void *)a;
+                    procedure[i-1].payload = (void *)a;
                     if(DEBUG) printf("\nlexer: PSA: Instr is ICONST.");
                 } else if(!strcmp(instr, "sconst")) {
-                    procedure[i].instr = CONCEPT_SCONST;
+                    procedure[i-1].instr = CONCEPT_SCONST;
                     if(!param_flag) exit(130);
-                    procedure[i].payload = (void *)param;
+                    procedure[i-1].payload = (void *)param;
                     if(DEBUG) printf("\nlexer: PSA: Instr is SCONST.");
                 } else if(!strcmp(instr, "fconst")) {
-                    procedure[i].instr = CONCEPT_FCONST;
+                    procedure[i-1].instr = CONCEPT_FCONST;
                     if(!param_flag) exit(130);
                     float *f = rmalloc(sizeof(float));
                     *f = (float)atof(param);
-                    procedure[i].payload = (void *)f;
+                    procedure[i-1].payload = (void *)f;
                     if(DEBUG) printf("\nlexer: PSA: Instr is FCONST.");
                 } else if(!strcmp(instr, "bconst")) {
-                    procedure[i].instr = CONCEPT_BCONST;
+                    procedure[i-1].instr = CONCEPT_BCONST;
                     if(!param_flag) exit(130);
                     int32_t *b = rmalloc(sizeof(int32_t));
                     *b = atoi(param);
-                    procedure[i].payload = (void *)b;
+                    procedure[i-1].payload = (void *)b;
                     if(DEBUG) printf("\nlexer: PSA: Instr is BCONST.");
                 } else if(!strcmp(instr, "vconst")) {
-                    procedure[i].instr = CONCEPT_VCONST;
+                    procedure[i-1].instr = CONCEPT_VCONST;
                     // if(!param_flag) exit(130);
-                    // procedure[i].payload = (void *)void;
+                    // procedure[i-1].payload = (void *)void;
                     if(DEBUG) printf("\nlexer: PSA: Instr is VCONST.");
                 } else if(!strcmp(instr, "print")) {
-                    procedure[i].instr = CONCEPT_PRINT;
+                    procedure[i-1].instr = CONCEPT_PRINT;
                     if(DEBUG) printf("\nlexer: PSA: Instr is PRINT.");
                 } else if(!strcmp(instr, "pop")) {
-                    procedure[i].instr = CONCEPT_POP;
+                    procedure[i-1].instr = CONCEPT_POP;
                     if(DEBUG) printf("\nlexer: PSA: Instr is POP.");
                 } else if(!strcmp(instr, "goto")) {
-                    procedure[i].instr = CONCEPT_GOTO;
+                    procedure[i-1].instr = CONCEPT_GOTO;
                     if(!param_flag) exit(130);
                     int32_t goto_line_num = atoi(param);
                     int32_t *gif = go_to(goto_line_num);
-                    procedure[i].payload = (void *)gif;
+                    procedure[i-1].payload = (void *)gif;
                     if(DEBUG) printf("\nlexer: PSA: Instr is GOTO.");
                 } else if(!strcmp(instr, "if_icmple")) {
-                    procedure[i].instr = CONCEPT_IF_ICMPLE;
+                    procedure[i-1].instr = CONCEPT_IF_ICMPLE;
                     if(!param_flag) exit(130);
                     int32_t goto_line_num = atoi(param);
                     int32_t *gif = go_to(goto_line_num);
-                    procedure[i].payload = (void *)gif;
+                    procedure[i-1].payload = (void *)gif;
                     if(DEBUG) printf("\nlexer: PSA: Instr is IF_ICMPLE.");
                 } else if(!strcmp(instr, "call")) {
-                    procedure[i].instr = CONCEPT_CALL;
+                    procedure[i-1].instr = CONCEPT_CALL;
                     if(DEBUG) printf("\nlexer: PSA: Instr is CALL.");
                     if(!param_flag) exit(130);
                     // perform an O(n) search to substitute in the actual position
@@ -1313,34 +1315,34 @@ void parse_procedures() {
                         if(!strcmp(param, procedure_call_table[m])) {
                             // That's the procedure we want!
                             call_addr = (int32_t *)rmalloc(sizeof(int32_t));
-                            procedure[i].payload = call_addr;
+                            procedure[i-1].payload = call_addr;
                             flag = 1;
                         }
                     }
                     if(!flag) { printf("Illegal call.\n"); exit(130); }
                 } else if(!strcmp(instr, "gstore")) {
-                    procedure[i].instr = CONCEPT_GSTORE;
+                    procedure[i-1].instr = CONCEPT_GSTORE;
                     if(DEBUG) printf("\nlexer: PSA: Instr is GSTORE.");
                 } else if(!strcmp(instr, "gload")) {
-                    procedure[i].instr = CONCEPT_GLOAD;
+                    procedure[i-1].instr = CONCEPT_GLOAD;
                     if(DEBUG) printf("\nlexer: PSA: Instr is GLOAD.");
                 } else if(!strcmp(instr, "ret")) {
-                    procedure[i].instr = CONCEPT_RETURN;
+                    procedure[i-1].instr = CONCEPT_RETURN;
                     if(DEBUG) printf("\nlexer: PSA: Instr is RET.");
                 } else if(!strcmp(instr, "inc")) {
-                    procedure[i].instr = CONCEPT_INC;
+                    procedure[i-1].instr = CONCEPT_INC;
                     if(DEBUG) printf("\nlexer: PSA: Instr is INC.");
                 } else if(!strcmp(instr, "dec")) {
-                    procedure[i].instr = CONCEPT_DEC;
+                    procedure[i-1].instr = CONCEPT_DEC;
                     if(DEBUG) printf("\nlexer: PSA: Instr is DEC.");
                 } else if(!strcmp(instr, "dup")) {
-                    procedure[i].instr = CONCEPT_DUP;
+                    procedure[i-1].instr = CONCEPT_DUP;
                     if(DEBUG) printf("\nlexer: PSA: Instr is DUP.");
                 } else if(!strcmp(instr, "swap")) {
-                    procedure[i].instr = CONCEPT_SWAP;
+                    procedure[i-1].instr = CONCEPT_SWAP;
                     if(DEBUG) printf("\nlexer: PSA: Instr is SWAP.");
                 } else if(!strcmp(instr, "halt")) {
-                    procedure[i].instr = CONCEPT_HALT;
+                    procedure[i-1].instr = CONCEPT_HALT;
                     if(DEBUG) printf("\nlexer: PSA: Instr is HALT.");
                 } else  {
                     printf("\n lexer:PSA: ERR: INVALID INSTR DETECTED > ABRT.");
@@ -1394,6 +1396,12 @@ void run(char *arg) {
     //event_loop(bytecodes[0], &f_stack, &i_stack);
 
     parse_procedures();
+
+    for(int i = 0; i < procedure_length_table[0]; i++) {
+
+        int instr = program[0][i].instr;
+        printf("\nRead instr: %d\n", instr);
+    }
 
     eval(0, &f_stack, &i_stack, 0);
 
