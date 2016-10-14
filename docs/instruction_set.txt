@@ -78,9 +78,6 @@
 #ifnedf CALL_STACK_SIZE
   #define CALL_STACK_SIZE = 1000
 #endif
-
-
-
 #define CONCEPT_IADD 100 // Integer Addition OUTPUT: Integer
 #define CONCEPT_IDIV 101 // Integer Division OUTPUT: Integer
 #define CONCEPT_IMUL 102 // Integer Multiplication OUTPUT: Integer
@@ -99,7 +96,7 @@
 #define CONCEPT_OR  113 // Boolean OR  OUTPUT: Boolean
 #define CONCEPT_XOR 114 // Boolean XOR OUTPUT: Boolean
 #define CONCEPT_NE  115 // Boolean NE  OUTPUT: Boolean
-#define CONCEPT_IF  116 // Boolean IF  OUTPUT: Boolean // TODO
+#define CONCEPT_IF  116 // Boolean IF  OUTPUT: Boolean
 
 #define CONCEPT_CCONST 117 // Initialize Char Constant OUTPUT: Void
 #define CONCEPT_ICONST 118 // Initialize Integer Constant OUTPUT: Void
@@ -108,13 +105,15 @@
 #define CONCEPT_BCONST 121 // Initialize Boolean Constant OUTPUT: Void
 #define CONCEPT_VCONST 122 // Initialize Void Constant OUTPUT: Void
 
-#define CONCEPT_PROCEDURE 123 // Initialize Concept Function OUTPUT: Void
-#define CONCEPT_PRINT 124 // Print to stdout OUTPUT: Void
-#define CONCEPT_CALL 125 // Call a procedure
-#define CONCEPT_LOAD 126 // Load value
-#define CONCEPT_STORE 127 // Store value
-#define CONCEPT_FLOAD 128 // Load float value
-#define CONCEPT_FSTORE 129 // Store float value
-#define CONCEPT_GLOAD 130 // Load global value
-#define CONCEPT_GSTORE 131 // Store global value
-#define CONCEPT_POP 132 // Pop a value out of stack
+#define CONCEPT_PRINT 123 // Print to stdout OUTPUT: Void
+#define CONCEPT_CALL 124 // Call a procedure(void *)
+#define CONCEPT_GLOAD 127 // Load global value
+#define CONCEPT_GSTORE 128 // Store global value
+#define CONCEPT_POP 129 // Pop a value out of stack
+#define CONCEPT_IF_ICMPLE 130 // if_icmple
+#define CONCEPT_GOTO 131 // Goto Statement
+#define CONCEPT_RETURN 132 // Return
+#define CONCEPT_INC 133
+#define CONCEPT_DEC 134
+#define CONCEPT_DUP 135
+#define CONCEPT_SWAP 136
