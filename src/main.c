@@ -187,7 +187,7 @@ ConceptInstruction_t **program;
 
 
 char* remove_spaces(char *src){
-    char *dst = malloc(sizeof(src));
+    char *dst = rmalloc(sizeof(src));
     int32_t s, d=0;
     for (s=0; src[s] != 0; s++)
         if (src[s] != ' ' && src[s] != '\t') {
@@ -1006,7 +1006,7 @@ void cleanup(ConceptStack_t *global_stack) {
 
 
 char* substring(char *string, int32_t start, int32_t end) {
-    char* subbuff = malloc(sizeof(char) * (end - start));
+    char* subbuff = rmalloc(sizeof(char) * (end - start));
     memcpy(subbuff, &string[start], (end - start));
     subbuff[end - start] = '\0';
     return subbuff;
