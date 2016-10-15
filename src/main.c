@@ -73,6 +73,16 @@
 #define CONCEPT_SHIFTL 137
 #define CONCEPT_SHIFTR 138
 
+// DEBUG prettifiers
+
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 /* ========================
  * Error handling functions
  * ========================
@@ -866,7 +876,14 @@ int32_t concept_debug() {
 void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t start_by) { // TODO
 
 
-    if(DEBUG) printf("\n\nConceptum: Welcome to the eval() Loop. FYI: Curr index %d, starting by line %d \n", index, start_by);
+    if(DEBUG) {
+        if (!index)
+            printf(ANSI_COLOR_RESET ANSI_COLOR_MAGENTA "\n\nConceptum: Welcome to the eval() Loop. FYI: Curr index %d, starting by line %d \n", index,
+                   start_by);
+        else
+            printf(ANSI_COLOR_RESET ANSI_COLOR_YELLOW "\n\nConceptum: eval() being called RECURSIVELY again. FYI: Curr index %d, starting by line %d \n", index,
+                   start_by);
+    }
 
     if(DEBUG) printf("\n eval: Defining a call stack... for your mental healthcare!");
     ConceptStack_t call_stack; // if any
@@ -992,6 +1009,7 @@ void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                 on_error(CONCEPT_GENERAL_ERROR, " Exit by HALT.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
                 break;
             case CONCEPT_RETURN:
+                if(DEBUG) printf("\neval: RETURNing to parent function call...\n" ANSI_COLOR_RESET ANSI_COLOR_MAGENTA);
                 return stack_pop(stack);
                 break; // DO NOTHING
             default:
@@ -1000,6 +1018,7 @@ void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                 break; // do nothing
         }
     }
+     if(DEBUG) printf("\neval: Naturally RETURNing to parent function call...\n");
      return stack_pop(stack); // TODO TODO redesign this function.
 }
 
@@ -1096,7 +1115,7 @@ void read_prog(char *file_path) {
 // the String name, but the ACTUAL address of the bytecode procedure, which in turn makes an O(n) + O(1) complexity an O(1) complexity
 void parse_procedures() {
 
-    if(DEBUG) printf("\nConceptual-FANNGGOVITCH Bytecode Parser. Parsing input...\n");
+    if(DEBUG) printf(ANSI_COLOR_CYAN "\nConceptual-FANNGGOVITCH Bytecode Parser. Parsing input...\n");
 
     int32_t how_many_procedures = 0;
     for(int32_t d = 0; d < concept_program.len; d++) {
@@ -1115,7 +1134,7 @@ void parse_procedures() {
     if(DEBUG) printf("\n\nParsing input into procedure call table...");
 
     int32_t prog_counter = 0;
-    for(int32_t d = 0; d < concept_program.len; d++) {
+    XXX_get_procedure_stats: for(int32_t d = 0; d < concept_program.len; d++) {
         if(strstr(concept_program.code[d], "procedure")) {
             char *proc = concept_program.code[d];
 
@@ -1149,10 +1168,10 @@ void parse_procedures() {
         printf("\nFANNGGOVITCH Bytecode Lexer: START\n");
     }
 
-    for(int32_t j = 0; j < concept_program.len; j++) { // read in the procedure(s)
+    XXX_parse_each_procedures: for(int32_t j = 0; j < concept_program.len; j++) { // read in the procedure(s)
         if(strstr(concept_program.code[j], "procedure")) {
             ConceptInstruction_t *procedure; // ConceptInstruction_t
-            int32_t counter = 0;
+            int32_t counter = 0; // fur PSA
             int32_t i = j;
             for(j; !strstr(concept_program.code[j], "ret"); j++);
             int32_t procedure_len = j - i;
@@ -1160,18 +1179,18 @@ void parse_procedures() {
             char *prog_name_line = concept_program.code[i];
             if(DEBUG) {
                 printf("\n lexer: %dth Procedure discovered @ %d, procedure return discovered @ %d, len %d \n\t| procedure name >> %s",
-                       procedure_counter, i, j, procedure_len, prog_name_line); // cunter cunter cunter!!
+                       procedure_counter, i, j, procedure_len, prog_name_line);
             }
 
             procedure = (ConceptInstruction_t *)rmalloc(procedure_len * sizeof(ConceptInstruction_t)); // including the return statement
 
             if(DEBUG) {
-                printf("\n lexer: Allocated procedure bytecode array space. Total size: %lu; Len: %d. Parsing every single line of program...",
+                printf("\n lexer: Allocated procedure bytecode array space. Total size: %lu; Len: %d. Parsing every single line of program..." ANSI_COLOR_RESET,
                        sizeof(procedure), procedure_len);
-                printf("\n lexer: ProgramSyntaxAnalyser: START\n");
+                printf(ANSI_COLOR_GREEN "\n lexer: ProgramSyntaxAnalyser: START\n");
             }
 
-            for(i = i + 1; i <= j; i++) { // from the first line of program to the ret statement, read every line and parse
+            XXX_parse_each_line_in_procedure: for(i = i + 1; i <= j; i++) { // from the first line of program to the ret statement, read every line and parse
                 // parse, parse, parse!
                 char *s_line = concept_program.code[i];
                 int32_t p;
@@ -1198,117 +1217,117 @@ void parse_procedures() {
 
                 // The advent of a gigantic if... C switches doesn't support char*
                 if(!strcmp(instr, "iadd")) {
-                    procedure[i-1].instr = CONCEPT_IADD;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is IADD.");
+                    procedure[counter].instr = CONCEPT_IADD;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is IADD. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "idiv")) {
-                    procedure[i-1].instr = CONCEPT_IDIV;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is IDIV.");
+                    procedure[counter].instr = CONCEPT_IDIV;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is IDIV. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "imul")) {
-                    procedure[i-1].instr = CONCEPT_IMUL;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is IMUL.");
+                    procedure[counter].instr = CONCEPT_IMUL;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is IMUL. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "fadd")) {
-                    procedure[i-1].instr = CONCEPT_FADD;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is FADD.");
+                    procedure[counter].instr = CONCEPT_FADD;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is FADD. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "fdiv")) {
-                    procedure[i-1].instr = CONCEPT_FDIV;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is FDIV.");
+                    procedure[counter].instr = CONCEPT_FDIV;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is FDIV. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "fmul")) {
-                    procedure[i-1].instr = CONCEPT_FMUL;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is FMUL.");
+                    procedure[counter].instr = CONCEPT_FMUL;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is FMUL. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "ilt")) {
-                    procedure[i-1].instr = CONCEPT_ILT;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is ILT.");
+                    procedure[counter].instr = CONCEPT_ILT;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is ILT. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "ieq")) {
-                    procedure[i-1].instr = CONCEPT_IEQ;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is IEQ.");
+                    procedure[counter].instr = CONCEPT_IEQ;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is IEQ. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "igt")) {
-                    procedure[i-1].instr = CONCEPT_IGT;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is IGT.");
+                    procedure[counter].instr = CONCEPT_IGT;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is IGT. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "flt")) {
-                    procedure[i-1].instr = CONCEPT_FLT;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is FLT.");
+                    procedure[counter].instr = CONCEPT_FLT;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is FLT. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "feq")) {
-                    procedure[i-1].instr = CONCEPT_FEQ;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is FEQ.");
+                    procedure[counter].instr = CONCEPT_FEQ;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is FEQ. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "fgt")) {
-                    procedure[i-1].instr = CONCEPT_FGT;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is FGT.");
+                    procedure[counter].instr = CONCEPT_FGT;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is FGT. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "and")) {
-                    procedure[i-1].instr = CONCEPT_AND;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is AND.");
+                    procedure[counter].instr = CONCEPT_AND;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is AND. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "or")) {
-                    procedure[i-1].instr = CONCEPT_OR;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is OR.");
+                    procedure[counter].instr = CONCEPT_OR;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is OR. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "xor")) {
-                    procedure[i-1].instr = CONCEPT_XOR;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is XOR.");
+                    procedure[counter].instr = CONCEPT_XOR;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is XOR. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "ne")) {
-                    procedure[i-1].instr = CONCEPT_NE;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is NE.");
+                    procedure[counter].instr = CONCEPT_NE;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is NE. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "if")) {
-                    procedure[i-1].instr = CONCEPT_IF;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is IF.");
+                    procedure[counter].instr = CONCEPT_IF;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is IF. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "cconst")) {
-                    procedure[i-1].instr = CONCEPT_CCONST;
+                    procedure[counter].instr = CONCEPT_CCONST;
                     if(!param_flag) exit(130);
                     char *c = rmalloc(sizeof(char));
                     *c = param[0];
-                    procedure[i-1].payload = (void *)c;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is CCONST.");
+                    procedure[counter].payload = (void *)c;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is CCONST. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "iconst")) {
-                    procedure[i-1].instr = CONCEPT_ICONST;
+                    procedure[counter].instr = CONCEPT_ICONST;
                     if(!param_flag) exit(130);
                     int32_t *a = rmalloc(sizeof(int32_t));
                     *a = atoi(param);
-                    procedure[i-1].payload = (void *)a;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is ICONST.");
+                    procedure[counter].payload = (void *)a;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is ICONST. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "sconst")) {
-                    procedure[i-1].instr = CONCEPT_SCONST;
+                    procedure[counter].instr = CONCEPT_SCONST;
                     if(!param_flag) exit(130);
-                    procedure[i-1].payload = (void *)param;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is SCONST.");
+                    procedure[counter].payload = (void *)param;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is SCONST. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "fconst")) {
-                    procedure[i-1].instr = CONCEPT_FCONST;
+                    procedure[counter].instr = CONCEPT_FCONST;
                     if(!param_flag) exit(130);
                     float *f = rmalloc(sizeof(float));
                     *f = (float)atof(param);
-                    procedure[i-1].payload = (void *)f;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is FCONST.");
+                    procedure[counter].payload = (void *)f;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is FCONST. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "bconst")) {
-                    procedure[i-1].instr = CONCEPT_BCONST;
+                    procedure[counter].instr = CONCEPT_BCONST;
                     if(!param_flag) exit(130);
                     int32_t *b = rmalloc(sizeof(int32_t));
                     *b = atoi(param);
-                    procedure[i-1].payload = (void *)b;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is BCONST.");
+                    procedure[counter].payload = (void *)b;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is BCONST. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "vconst")) {
-                    procedure[i-1].instr = CONCEPT_VCONST;
+                    procedure[counter].instr = CONCEPT_VCONST;
                     // if(!param_flag) exit(130);
-                    // procedure[i-1].payload = (void *)void;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is VCONST.");
+                    // procedure[counter].payload = (void *)void;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is VCONST. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "print")) {
-                    procedure[i-1].instr = CONCEPT_PRINT;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is PRINT.");
+                    procedure[counter].instr = CONCEPT_PRINT;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is PRINT. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "pop")) {
-                    procedure[i-1].instr = CONCEPT_POP;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is POP.");
+                    procedure[counter].instr = CONCEPT_POP;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is POP. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "goto")) {
-                    procedure[i-1].instr = CONCEPT_GOTO;
+                    procedure[counter].instr = CONCEPT_GOTO;
                     if(!param_flag) exit(130);
                     int32_t goto_line_num = atoi(param);
                     int32_t *gif = go_to(goto_line_num);
-                    procedure[i-1].payload = (void *)gif;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is GOTO.");
+                    procedure[counter].payload = (void *)gif;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is GOTO. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "if_icmple")) {
-                    procedure[i-1].instr = CONCEPT_IF_ICMPLE;
+                    procedure[counter].instr = CONCEPT_IF_ICMPLE;
                     if(!param_flag) exit(130);
                     int32_t goto_line_num = atoi(param);
                     int32_t *gif = go_to(goto_line_num);
-                    procedure[i-1].payload = (void *)gif;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is IF_ICMPLE.");
+                    procedure[counter].payload = (void *)gif;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is IF_ICMPLE. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "call")) {
-                    procedure[i-1].instr = CONCEPT_CALL;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is CALL.");
+                    procedure[counter].instr = CONCEPT_CALL;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is CALL. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                     if(!param_flag) exit(130);
                     // perform an O(n) search to substitute in the actual position
                     int32_t *call_addr;
@@ -1318,48 +1337,51 @@ void parse_procedures() {
                             // That's the procedure we want!
                             call_addr = (int32_t *)rmalloc(sizeof(int32_t));
                             *call_addr = m;
-                            procedure[i-1].payload = call_addr;
+                            if(DEBUG) printf("\n CALL: Procedure found, located @ %d.", m);
+                            procedure[counter].payload = call_addr;
                             flag = 1;
                         }
                     }
                     if(!flag) { printf("Illegal call.\n"); exit(130); }
                 } else if(!strcmp(instr, "gstore")) {
-                    procedure[i-1].instr = CONCEPT_GSTORE;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is GSTORE.");
+                    procedure[counter].instr = CONCEPT_GSTORE;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is GSTORE. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "gload")) {
-                    procedure[i-1].instr = CONCEPT_GLOAD;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is GLOAD.");
+                    procedure[counter].instr = CONCEPT_GLOAD;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is GLOAD. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "ret")) {
-                    procedure[i-1].instr = CONCEPT_RETURN;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is RET.");
+                    procedure[counter].instr = CONCEPT_RETURN;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is RET. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "inc")) {
-                    procedure[i-1].instr = CONCEPT_INC;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is INC.");
+                    procedure[counter].instr = CONCEPT_INC;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is INC. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "dec")) {
-                    procedure[i-1].instr = CONCEPT_DEC;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is DEC.");
+                    procedure[counter].instr = CONCEPT_DEC;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is DEC. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "dup")) {
-                    procedure[i-1].instr = CONCEPT_DUP;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is DUP.");
+                    procedure[counter].instr = CONCEPT_DUP;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is DUP. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "swap")) {
-                    procedure[i-1].instr = CONCEPT_SWAP;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is SWAP.");
+                    procedure[counter].instr = CONCEPT_SWAP;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is SWAP. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "halt")) {
-                    procedure[i-1].instr = CONCEPT_HALT;
-                    if(DEBUG) printf("\nlexer: PSA: Instr is HALT.");
+                    procedure[counter].instr = CONCEPT_HALT;
+                    if(DEBUG) printf("\nlexer: PSA: Instr is HALT. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else  {
-                    printf("\n lexer:PSA: ERR: INVALID INSTR DETECTED > ABRT.");
+                    printf("\n lexer:PSA: ERR: INVALID INSTR DETECTED > ABRT. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                     exit(130);
                 } // ABRT
+
+                counter ++;
             }
 
             // if
-
+            counter = 0;
             compiled_bytecode_collection[procedure_counter] = procedure;
             procedure_counter++;
         }
 
-        if(DEBUG) printf("\n\n CONGRADULATIONS! Successfully parsed everything into Bytecode. Starting the bytecode interpreter...\n");
+        if(DEBUG) printf(ANSI_COLOR_RESET ANSI_COLOR_RED"\n\n CONGRADULATIONS! Successfully parsed everything into Bytecode. Starting the bytecode interpreter...\n"ANSI_COLOR_RESET);
 
         program = compiled_bytecode_collection;
 
