@@ -1,1 +1,1 @@
-/Library/Developer/CommandLineTools/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/Conceptum.dir/src/main.c.o CMakeFiles/Conceptum.dir/src/memman.c.o  -o Conceptum 
+/Library/Developer/CommandLineTools/usr/bin/cc   -std=c11 -Dfast -Os -mtune=native -march=native -mx32 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/Conceptum.dir/src/main.c.o CMakeFiles/Conceptum.dir/src/memman.c.o  -o Conceptum 
