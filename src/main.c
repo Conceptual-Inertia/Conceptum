@@ -1677,14 +1677,15 @@ int32_t main(int32_t argc, char **argv) { // test codes here!
     clock_t begin_time = clock();
 #endif
     if(argc == 2) run(argv[1]);
-#ifdef MEASURE_FULL_RUNTIME
-    clock_t end_time = clock();
-    clock_t time_diff = end_time - begin_time;
-#endif
     else {
         printf("\n Conceptum \n");
         printf("Usage: ./cvm <code_file_path>\n");
         printf("Err: No input file specified. Exiting...");
     }
+
+#ifdef MEASURE_FULL_RUNTIME
+    clock_t end_time = clock();
+    clock_t time_diff = end_time - begin_time;
+#endif
     return 0;
 }
