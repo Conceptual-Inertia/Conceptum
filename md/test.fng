@@ -7,7 +7,29 @@ iconst 5
 iconst 6
 iconst 7
 iconst 8
+iconst 9
+iconst 10
+iconst 11
+iconst 12
+iconst 13
+iconst 14
+iconst 15
+call sampletest
+iconst 16
+iconst 17
+iconst 18
+iconst 19
+iconst 20
 iadd
 iadd
-halt
+iadd
+imul
+iadd
+idiv
+ret
+
+procedure sampletest
+iconst 59
+iconst 60
+iconst 44
 ret
