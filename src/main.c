@@ -1313,6 +1313,9 @@ void parse_procedures() {
                     if(!param_flag) exit(130);
                     int32_t *b = rmalloc(sizeof(int32_t));
                     *b = atoi(param);
+                    if(*b != 0 && *b != 1) {
+                        on_error(CONCEPT_COMPILER_ERROR, "BOOL value is NOT bool.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
+                    }
                     procedure[counter].payload = (void *)b;
                     if(DEBUG) printf("\nlexer: PSA: Instr is BCONST. Currently assigning @ line [%d]. Program [%d].", (counter), procedure_counter);
                 } else if(!strcmp(instr, "vconst")) {
@@ -1407,7 +1410,12 @@ void parse_procedures() {
 
 void run(char *arg) {
     // read in the program
+
+    clock_t prg_read_time = clock();
     read_prog(arg);
+    clock_t prg_read_time_out = clock();
+    clock_t prg_read_time_diff = prg_read_time_out - prg_read_time;
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n READPROGRAM TOTAL RUNTIME:%lu\n\n" ANSI_COLOR_RESET, prg_read_time_diff * 1000000000 / CLOCKS_PER_SEC);
     if(concept_program.code == NULL || concept_program.len == 0 || concept_program.len == -1)
         on_error(CONCEPT_COMPILER_ERROR, "Input program not found.",  CONCEPT_STATE_CATASTROPHE, CONCEPT_ABORT);
 
@@ -1435,7 +1443,11 @@ void run(char *arg) {
     //ConceptBytecode_t **bytecodes = parse();
     //event_loop(bytecodes[0], &f_stack, &i_stack);
 
+    clock_t prg_parse_time_start = clock();
     parse_procedures();
+    clock_t prg_parse_time_end = clock();
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE "\n\n PARSEPROGRAM TOTAL RUNTIME:%lu\n\n" ANSI_COLOR_RESET,
+           (prg_parse_time_end-prg_parse_time_start) * 1000000000 / CLOCKS_PER_SEC);
     if(DEBUG) {
         for (int i = 0; i < procedure_length_table_length; i++) {
             for (int j = 0; j < procedure_length_table[i]; j++) {

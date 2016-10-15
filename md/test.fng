@@ -1,4 +1,8 @@
 procedure main
+bconst 0
+if_icmple 5
+bconst 1
+if_icmple 9
 iconst 1
 iconst 2
 iconst 3
