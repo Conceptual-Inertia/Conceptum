@@ -965,6 +965,7 @@ void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                 break;
             case CONCEPT_CALL:
                 stack_alloc(&call_stack, CONCEPTFP_MAX_LENGTH);
+                if(DEBUG) printf("\nFCALL\t:%d (Name: %s)", (*(int32_t *)(program[index][i].payload)), procedure_call_table[*(int32_t *)(program[index][i].payload)]);
                 stack_push(stack, eval((*(int32_t *)(program[index][i].payload)), &call_stack, global_stack, 0));
                 // stack_push(stack, ret_val);
                 break;
@@ -991,6 +992,7 @@ void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                 on_error(CONCEPT_GENERAL_ERROR, " Exit by HALT.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
                 break;
             case CONCEPT_RETURN:
+                return stack_pop(stack);
                 break; // DO NOTHING
             default:
                 on_error(CONCEPT_COMPILER_ERROR, "Error: Unknown instruction", CONCEPT_STATE_CATASTROPHE,
@@ -1315,6 +1317,7 @@ void parse_procedures() {
                         if(!strcmp(param, procedure_call_table[m])) {
                             // That's the procedure we want!
                             call_addr = (int32_t *)rmalloc(sizeof(int32_t));
+                            *call_addr = m;
                             procedure[i-1].payload = call_addr;
                             flag = 1;
                         }
@@ -1397,10 +1400,11 @@ void run(char *arg) {
 
     parse_procedures();
 
-    for(int i = 0; i < procedure_length_table[0]; i++) {
-
-        int instr = program[0][i].instr;
-        printf("\nRead instr: %d\n", instr);
+    for(int i = 0; i < procedure_length_table_length; i++) {
+        for(int j = 0; j < procedure_length_table[i]; j++) {
+            int instr = program[i][j].instr;
+            printf("\n%d\n", instr);
+        }
     }
 
     eval(0, &f_stack, &i_stack, 0);
