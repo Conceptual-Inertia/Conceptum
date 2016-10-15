@@ -803,6 +803,19 @@ int32_t* go_to(int32_t line_number) { // TODO TODO
 
     int32_t cumulative_line_count = 0;
 
+
+    // handle the special case where the goto resides in the main procedure.
+    // not a good solution, TODO have ea better one!
+    if(line_number >= cumulative_line_count && line_number <= procedure_length_table[0]) {
+        // in this procedure!
+        int32_t pc_line = (line_number - cumulative_line_count);
+        int32_t *rtn = (int32_t *)rmalloc(sizeof(int32_t)*3);
+        rtn[0] = 0;
+        rtn[1] = pc_line;
+        rtn[2] = (-1);
+        return rtn;
+    }
+
     for(int32_t findex = 0; findex < procedure_length_table_length; findex++) {
         cumulative_line_count += procedure_length_table[findex];
         int32_t next_cum_len = cumulative_line_count + procedure_length_table[findex+1];
@@ -1003,6 +1016,7 @@ void* eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                     return eval(((int32_t*)(program[index][i].payload))[0], stack, global_stack, ((int32_t*)(program[index][i].payload))[1]);
                 break;
             case CONCEPT_GOTO:
+                if(DEBUG) printf("\nGOTO warning: TRASHing this current eval() and push local stack to a new one... Returning directly afterwards!\n");
                 return eval(((int32_t*)(program[index][i].payload))[0], stack, global_stack, ((int32_t*)(program[index][i].payload))[1]);
                 break;
             case CONCEPT_HALT:

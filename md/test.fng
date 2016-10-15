@@ -2,6 +2,7 @@ procedure main
 iconst 1
 iconst 2
 iconst 3
+goto 7
 iconst 4
 iconst 5
 iconst 6
