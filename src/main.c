@@ -9,7 +9,7 @@
  * ACKNOWLEDGEMENTS
  * ----------------
  *
- *  - Jonathan Shug, who helped debug a memory error
+ *  - Jonathan Schug, who helped debug a memory error
  */
 
 #include <stdlib.h>
