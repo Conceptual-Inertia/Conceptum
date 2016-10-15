@@ -1,0 +1,6 @@
+procedure main
+iconst 1
+iconst 2
+goto 3
+iadd
+ret
