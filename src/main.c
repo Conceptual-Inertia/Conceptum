@@ -18,8 +18,9 @@
 #include <float.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
-
+// MeMmAn
 #include "memman.h"
 
 // Limits
@@ -1435,15 +1436,23 @@ void run(char *arg) {
     //event_loop(bytecodes[0], &f_stack, &i_stack);
 
     parse_procedures();
-
-    for(int i = 0; i < procedure_length_table_length; i++) {
-        for(int j = 0; j < procedure_length_table[i]; j++) {
-            int instr = program[i][j].instr;
-            printf("\n%d\n", instr);
+    if(DEBUG) {
+        for (int i = 0; i < procedure_length_table_length; i++) {
+            for (int j = 0; j < procedure_length_table[i]; j++) {
+                int instr = program[i][j].instr;
+                printf("\n%d\n", instr);
+            }
         }
     }
 
-    eval(0, &f_stack, &i_stack, 0);
+    //execute
+    clock_t diff;
+    clock_t start = clock(); // start timing
+
+    eval(0, &f_stack, &i_stack, 0); // loop
+    diff = clock() - start; // calculate return
+
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS TOTAL RUNTIME: %lu ns\n\n" ANSI_COLOR_RESET, diff * 1000000000 / CLOCKS_PER_SEC);
 
     cleanup(&i_stack);
     cleanup(&f_stack);
