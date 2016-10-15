@@ -1219,7 +1219,8 @@ void read_prog(char *file_path) {
             break;
 
         /* Get rid of CR or LF at end of line */
-        for (j = strlen(words[i]) - 1; j >= 0 && (words[i][j] == '\n' || words[i][j] == '\r'); j--);;;;
+        for (j = strlen(words[i]) - 1; j >= 0 && (words[i][j] == '\n' || words[i][j] == '\r'); j--)
+            ;
         words[i][j + 1] = '\0';
     }
     /* Close file */
@@ -1331,7 +1332,7 @@ void parse_procedures() {
             ConceptInstruction_t *procedure; // ConceptInstruction_t
             int32_t counter = 0; // fur PSA
             int32_t i = j;
-            for (j; !strstr(concept_program.code[j], "ret"); j++);
+            for (; !strstr(concept_program.code[j], "ret"); j++);
             int32_t procedure_len = j - i;
             procedure_length_table[procedure_counter] = procedure_len;
             char *prog_name_line = concept_program.code[i];
