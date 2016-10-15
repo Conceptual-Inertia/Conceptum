@@ -19,6 +19,8 @@ string.h
 -
 ctype.h
 -
+time.h
+-
 memman.h
 /Users/derros/Projects/Conceptum/src/memman.h
 
