@@ -896,11 +896,11 @@ void concept_decr(ConceptStack_t *stack) {
 }
 
 void concept_swap(ConceptStack_t *stack) {
-    int32_t i = *((int32_t *) (stack_pop(stack)));
-    int32_t j = *((int32_t *) (stack_pop(stack)));
-    int32_t *k = (int32_t *) rmalloc(sizeof(int32_t));
-    *k = i + j;
-    stack_push(stack, k);
+    int32_t* i = ((int32_t *) (stack_pop(stack)));
+    int32_t* j = ((int32_t *) (stack_pop(stack)));
+
+    stack_push(stack, j);
+    stack_push(stack, i);
 }
 
 void concept_dupl(ConceptStack_t *stack) {
