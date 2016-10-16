@@ -1128,7 +1128,6 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
                 printf("\nFCALL\t:%d (Name: %s)", (*(int32_t *) (program[index][i].payload)),
                        procedure_call_table[*(int32_t *) (program[index][i].payload)]);
 #endif
-                glob_temp_time = dispatch_start_time;
                 handle_dispatch_time_on_recurse();
                 stack_push(stack, eval((*(int32_t *) (program[index][i].payload)), &call_stack, global_stack, 0, 0));
                 // stack_push(stack, ret_val);
@@ -1146,16 +1145,20 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
                 concept_dupl(stack);
                 break;
             case CONCEPT_IF_ICMPLE:
-                if (*((BOOL *) (stack_pop(stack))))
-                    return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
-                                ((int32_t *) (program[index][i].payload))[1], 1);
+                if (*((BOOL *) (stack_pop(stack)))) {
+                //    return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
+                //                ((int32_t *) (program[index][i].payload))[1], 1);
+                    i = (*(int32_t *) (program[index][i].payload)) - 1;
+                }
                 break;
             case CONCEPT_GOTO:
 #ifdef DEBUG
                 printf("\nGOTO warning: TRASHing this current eval() and push local stack to a new one... Returning directly afterwards!\n");
 #endif
-                return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
-                            ((int32_t *) (program[index][i].payload))[1], 1);
+                //return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
+                //            ((int32_t *) (program[index][i].payload))[1], 1);
+
+                i = (*(int32_t *) (program[index][i].payload)) - 1;
                 break;
             case CONCEPT_HALT:
                 on_error(CONCEPT_GENERAL_ERROR, " Exit by HALT.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
@@ -1581,7 +1584,8 @@ void parse_procedures() {
                     procedure[counter].instr = CONCEPT_GOTO;
                     if (!param_flag) exit(130);
                     int32_t goto_line_num = atoi(param);
-                    int32_t *gif = go_to(goto_line_num);
+                    int32_t *gif = rmalloc(sizeof(int32_t));
+                    *gif = goto_line_num;
                     procedure[counter].payload = (void *) gif;
 #ifdef DEBUG
                     printf("\nlexer: PSA: Instr is GOTO. Currently assigning @ line [%d]. Program [%d].", (counter),
@@ -1591,7 +1595,8 @@ void parse_procedures() {
                     procedure[counter].instr = CONCEPT_IF_ICMPLE;
                     if (!param_flag) exit(130);
                     int32_t goto_line_num = atoi(param);
-                    int32_t *gif = go_to(goto_line_num);
+                    int32_t *gif = rmalloc(sizeof(int32_t));
+                    *gif = goto_line_num;
                     procedure[counter].payload = (void *) gif;
 #ifdef DEBUG
                     printf("\nlexer: PSA: Instr is IF_ICMPLE. Currently assigning @ line [%d]. Program [%d].",

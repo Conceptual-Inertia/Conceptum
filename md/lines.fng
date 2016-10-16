@@ -1,6 +1,14 @@
 procedure main
+iconst 0
 iconst 1
-iconst 2
-goto 3
-iadd
+gstore
+gstore
+call sampletest
+ret
+procedure sampletest
+gload
+gload
+goto 4
+gload
+iconst 34
 ret
