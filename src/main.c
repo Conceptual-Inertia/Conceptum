@@ -27,6 +27,7 @@
 
 #define CONCEPTIP_MAX_LENGTH 30000
 #define CONCEPTFP_MAX_LENGTH 30000
+#define CONCEPTREC_MAX_LENGTH 10000
 
 /*
  * Comceptum Instruction set
@@ -111,7 +112,7 @@
 
 
 // DEBUG settings
-#if 0 // change to 0 if no DEBUG is needed
+#if 1 // change to 0 if no DEBUG is needed
 #ifndef DEBUG
 #define DEBUG // debug params
 #endif
@@ -124,13 +125,13 @@
 #endif
 #endif
 
-#if 0 // change to 0 if no read text file timing is needed
+#if 1 // change to 0 if no read text file timing is needed
 #ifndef MEASURE_READ_FILE_TIME
 #define MEASURE_READ_FILE_TIME
 #endif
 #endif
 
-#if 0 // change to 0 if no JIT timing is needed
+#if 1 // change to 0 if no JIT timing is needed
 #ifndef MEASURE_PARSE_TIME
 #define MEASURE_PARSE_TIME
 #endif
@@ -1144,7 +1145,7 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
                 stack_push(global_stack, stack_pop(stack));
                 break;
             case CONCEPT_CALL:
-                stack_alloc(&call_stack, CONCEPTFP_MAX_LENGTH);
+                stack_alloc(&call_stack, CONCEPTREC_MAX_LENGTH);
 #ifdef DEBUG
             printf("\nFCALL\t:%d (Name: %s)", (*(int32_t *) (program[index][i].payload)),
                    procedure_call_table[*(int32_t *) (program[index][i].payload)]);
@@ -1786,11 +1787,11 @@ void run(char *arg) {
     eval(0, &f_stack, &i_stack, 0, 0); // loop
     diff = clock() - start; // calculate return
 
-    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS TOTAL RUNTIME: %lu us\n\n" ANSI_COLOR_RESET,
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n PROCESS TOTAL RUNTIME: %lu us\n\n" ANSI_COLOR_RESET,
            diff * 1000000 / CLOCKS_PER_SEC);
 #ifdef MEASURE_SWITCH_DISPATCH
-    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS SWITCH DISPATCH TOTAL TIME: %lu us \n\n" ANSI_COLOR_RESET,
-           glob_dispatch_time * 1000000 / CLOCKS_PER_SEC);
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n PROCESS SWITCH DISPATCH TOTAL TIME: %lu us and DISPATCH COUNT %d times. \n" ANSI_COLOR_RESET,
+           glob_dispatch_time * 1000000 / CLOCKS_PER_SEC, dispatch_count);
 #endif
 #ifdef MEASURE_FETCH_TIME
     printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS FETCH TOTAL TIME: %lu us \n\n" ANSI_COLOR_RESET,
@@ -1816,7 +1817,7 @@ int32_t main(int32_t argc, char **argv) { // test codes here!
 #ifdef MEASURE_FULL_RUNTIME
     clock_t end_time = clock();
     clock_t time_diff = end_time - begin_time;
-    printf(ANSI_COLOR_RESET ANSI_COLOR_GREEN"\n\nFULL RUNTIME: \t %lu"ANSI_COLOR_RESET ANSI_COLOR_GREEN,
+    printf(ANSI_COLOR_RESET ANSI_COLOR_GREEN"\nFULL RUNTIME: \t %lu"ANSI_COLOR_RESET ANSI_COLOR_GREEN,
            time_diff * 1000000000 / CLOCKS_PER_SEC);
 #endif
     return 0;
