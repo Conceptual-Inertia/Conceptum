@@ -73,6 +73,7 @@
 #define CONCEPT_SWAP 136
 #define CONCEPT_SHIFTL 137
 #define CONCEPT_SHIFTR 138
+#define CONCEPT_TER 139
 
 // DEBUG prettifiers
 
@@ -1038,7 +1039,7 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
 #endif
 
         // plus one
-        dispatch_count ++;
+        dispatch_count++;
 
 #ifdef MEASURE_FETCH_TIME
         clock_t begin_fetch = clock();
@@ -1145,8 +1146,8 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
             case CONCEPT_CALL:
                 stack_alloc(&call_stack, CONCEPTFP_MAX_LENGTH);
 #ifdef DEBUG
-                printf("\nFCALL\t:%d (Name: %s)", (*(int32_t *) (program[index][i].payload)),
-                       procedure_call_table[*(int32_t *) (program[index][i].payload)]);
+            printf("\nFCALL\t:%d (Name: %s)", (*(int32_t *) (program[index][i].payload)),
+                   procedure_call_table[*(int32_t *) (program[index][i].payload)]);
 #endif
                 handle_dispatch_time_on_recurse();
                 stack_push(stack, eval((*(int32_t *) (program[index][i].payload)), &call_stack, global_stack, 0, 0));
@@ -1165,9 +1166,12 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
                 concept_dupl(stack);
                 break;
             case CONCEPT_IF_ICMPLE:
-                if (*((BOOL *) (stack_pop(stack)))) {
-                //    return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
-                //                ((int32_t *) (program[index][i].payload))[1], 1);
+                if (!(*((BOOL *) (stack_pop(stack))))) {
+#ifdef DEBUG
+                    printf("\nICMPLE: Value is TRUE. \n");
+#endif
+                    //    return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
+                    //                ((int32_t *) (program[index][i].payload))[1], 1);
                     i = (*(int32_t *) (program[index][i].payload)) - 1;
                 }
                 break;
@@ -1696,6 +1700,8 @@ void parse_procedures() {
                     printf("\nlexer: PSA: Instr is HALT. Currently assigning @ line [%d]. Program [%d].", (counter),
                            procedure_counter);
 #endif
+                } else if (!strcmp(instr, "ter")) {
+                    procedure[counter].instr = CONCEPT_RETURN;
                 } else {
                     printf("\n lexer:PSA: ERR: INVALID INSTR DETECTED > ABRT. Currently assigning @ line [%d]. Program [%d].",
                            (counter), procedure_counter);
@@ -1786,11 +1792,14 @@ void run(char *arg) {
     printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS SWITCH DISPATCH TOTAL TIME: %lu us \n\n" ANSI_COLOR_RESET,
            glob_dispatch_time * 1000000 / CLOCKS_PER_SEC);
 #endif
+#ifdef MEASURE_FETCH_TIME
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS FETCH TOTAL TIME: %lu us \n\n" ANSI_COLOR_RESET,
+           glob_fetch_time * 1000000 / CLOCKS_PER_SEC);
+#endif
     cleanup(&i_stack);
     cleanup(&f_stack);
     memfree();
 }
-
 
 
 int32_t main(int32_t argc, char **argv) { // test codes here!
