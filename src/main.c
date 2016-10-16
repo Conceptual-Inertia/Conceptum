@@ -110,7 +110,7 @@
 
 
 // DEBUG settings
-#if 1 // change to 0 if no DEBUG is needed
+#if 0 // change to 0 if no DEBUG is needed
 #ifndef DEBUG
 #define DEBUG // debug params
 #endif
@@ -123,15 +123,21 @@
 #endif
 #endif
 
-#if 1 // change to 0 if no read text file timing is needed
+#if 0 // change to 0 if no read text file timing is needed
 #ifndef MEASURE_READ_FILE_TIME
 #define MEASURE_READ_FILE_TIME
 #endif
 #endif
 
-#if 1 // change to 0 if no JIT timing is needed
+#if 0 // change to 0 if no JIT timing is needed
 #ifndef MEASURE_PARSE_TIME
 #define MEASURE_PARSE_TIME
+#endif
+#endif
+
+#if 1 // change to 0 if no fetch timing is needed
+#ifndef MEASURE_FETCH_TIME
+#define MEASURE_FETCH_TIME
 #endif
 #endif
 
@@ -145,6 +151,8 @@ clock_t glob_dispatch_time = 0;
 clock_t glob_fetch_time = 0;
 clock_t recursion_temp_time = 0;
 clock_t glob_temp_time = 0;
+
+int32_t dispatch_count = 0;
 
 static int32_t if_handles_exception(int32_t if_exception) {
     switch (if_exception) {
@@ -990,7 +998,6 @@ int32_t concept_debug() {
     return 0;
 }
 
-
 /*
  * File Reader Utilities and Lexer
  */
@@ -1030,6 +1037,19 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
         printf("\n eval: Dispatching instruction %d @ index %d: %d", i, index, program[index][i].instr);
 #endif
 
+        // plus one
+        dispatch_count ++;
+
+#ifdef MEASURE_FETCH_TIME
+        clock_t begin_fetch = clock();
+#endif
+        // fetch instruction
+        int instr = program[index][i].instr;
+#ifdef MEASURE_FETCH_TIME
+        clock_t end_fetch = clock();
+        glob_fetch_time += (end_fetch - begin_fetch);
+#endif
+
 #ifdef MEASURE_SWITCH_DISPATCH
         clock_t dispatch_start_time;
         if (is_recurse) {
@@ -1040,7 +1060,7 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
             glob_temp_time = clock();
         }
 #endif
-        switch (program[index][i].instr) {
+        switch (instr) {
             case CONCEPT_IADD:
                 concept_iadd(stack);
                 break;
