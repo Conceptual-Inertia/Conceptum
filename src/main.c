@@ -141,6 +141,11 @@
 #endif
 #endif
 
+clock_t glob_dispatch_time = 0;
+clock_t glob_fetch_time = 0;
+clock_t recursion_temp_time = 0;
+clock_t glob_temp_time = 0;
+
 static int32_t if_handles_exception(int32_t if_exception) {
     switch (if_exception) {
         case CONCEPT_WARN_NOEXIT:
@@ -931,6 +936,13 @@ int32_t *go_to(int32_t line_number) { // TODO TODO
     return 0; // to satisfy IDE
 }
 
+// handle time
+
+void handle_dispatch_time_on_recurse() {
+    clock_t dispatch_inaccurate_end_time = clock();
+    glob_dispatch_time += (dispatch_inaccurate_end_time - glob_temp_time);
+}
+
 /*
  * Concept Debug Program
  */
@@ -985,7 +997,8 @@ int32_t concept_debug() {
 
 // Iterating event loop
 // TODO implement iterator
-void *eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t start_by) { // TODO
+void *
+eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t start_by, int32_t is_recurse) { // TODO
 
 
 #ifdef DEBUG
@@ -1018,7 +1031,14 @@ void *eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
 #endif
 
 #ifdef MEASURE_SWITCH_DISPATCH
-        clock_t dispatch_start_time = clock();
+        clock_t dispatch_start_time;
+        if (is_recurse) {
+            clock_t end_dispatch_time = clock();
+            glob_dispatch_time += (end_dispatch_time - glob_temp_time);
+            glob_temp_time = clock();
+        } else {
+            glob_temp_time = clock();
+        }
 #endif
         switch (program[index][i].instr) {
             case CONCEPT_IADD:
@@ -1108,7 +1128,9 @@ void *eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                 printf("\nFCALL\t:%d (Name: %s)", (*(int32_t *) (program[index][i].payload)),
                        procedure_call_table[*(int32_t *) (program[index][i].payload)]);
 #endif
-                stack_push(stack, eval((*(int32_t *) (program[index][i].payload)), &call_stack, global_stack, 0));
+                glob_temp_time = dispatch_start_time;
+                handle_dispatch_time_on_recurse();
+                stack_push(stack, eval((*(int32_t *) (program[index][i].payload)), &call_stack, global_stack, 0, 0));
                 // stack_push(stack, ret_val);
                 break;
             case CONCEPT_INC:
@@ -1126,14 +1148,14 @@ void *eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
             case CONCEPT_IF_ICMPLE:
                 if (*((BOOL *) (stack_pop(stack))))
                     return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
-                                ((int32_t *) (program[index][i].payload))[1]);
+                                ((int32_t *) (program[index][i].payload))[1], 1);
                 break;
             case CONCEPT_GOTO:
 #ifdef DEBUG
                 printf("\nGOTO warning: TRASHing this current eval() and push local stack to a new one... Returning directly afterwards!\n");
 #endif
                 return eval(((int32_t *) (program[index][i].payload))[0], stack, global_stack,
-                            ((int32_t *) (program[index][i].payload))[1]);
+                            ((int32_t *) (program[index][i].payload))[1], 1);
                 break;
             case CONCEPT_HALT:
                 on_error(CONCEPT_GENERAL_ERROR, " Exit by HALT.", CONCEPT_STATE_ERROR, CONCEPT_WARN_EXITNOW);
@@ -1150,10 +1172,14 @@ void *eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, i
                 break; // do nothing
         }
 #ifdef MEASURE_SWITCH_DISPATCH
-        clock_t end_dispatch_time = clock();
-        clock_t dispatch_time_diff = end_dispatch_time - dispatch_start_time;
-        printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE "\n\nSWITCH DISPATCH TIME: %lu\n\n" ANSI_COLOR_RESET ANSI_COLOR_GREEN,
-               dispatch_time_diff * 1000000000 / CLOCKS_PER_SEC);
+        if (!is_recurse) {
+            clock_t end_dispatch_time = clock();
+            clock_t dispatch_time_diff = end_dispatch_time - glob_temp_time;
+            //printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE "\n\nSWITCH DISPATCH TIME: %lu\n\n" ANSI_COLOR_RESET ANSI_COLOR_GREEN,
+            //       dispatch_time_diff * 1000000000 / CLOCKS_PER_SEC);
+
+            glob_dispatch_time += dispatch_time_diff;
+        }
 #endif
     }
 #ifdef DEBUG
@@ -1219,8 +1245,7 @@ void read_prog(char *file_path) {
             break;
 
         /* Get rid of CR or LF at end of line */
-        for (j = strlen(words[i]) - 1; j >= 0 && (words[i][j] == '\n' || words[i][j] == '\r'); j--)
-            ;
+        for (j = strlen(words[i]) - 1; j >= 0 && (words[i][j] == '\n' || words[i][j] == '\r'); j--);
         words[i][j + 1] = '\0';
     }
     /* Close file */
@@ -1727,16 +1752,21 @@ void run(char *arg) {
     clock_t diff;
     clock_t start = clock(); // start timing
 
-    eval(0, &f_stack, &i_stack, 0); // loop
+    eval(0, &f_stack, &i_stack, 0, 0); // loop
     diff = clock() - start; // calculate return
 
-    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS TOTAL RUNTIME: %lu ns\n\n" ANSI_COLOR_RESET,
-           diff * 1000000000 / CLOCKS_PER_SEC);
-
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS TOTAL RUNTIME: %lu us\n\n" ANSI_COLOR_RESET,
+           diff * 1000000 / CLOCKS_PER_SEC);
+#ifdef MEASURE_SWITCH_DISPATCH
+    printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS SWITCH DISPATCH TOTAL TIME: %lu us \n\n" ANSI_COLOR_RESET,
+           glob_dispatch_time * 1000000 / CLOCKS_PER_SEC);
+#endif
     cleanup(&i_stack);
     cleanup(&f_stack);
     memfree();
 }
+
+
 
 int32_t main(int32_t argc, char **argv) { // test codes here!
 #ifdef MEASURE_FULL_RUNTIME
