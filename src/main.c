@@ -899,8 +899,8 @@ void concept_swap(ConceptStack_t *stack) {
     int32_t* i = ((int32_t *) (stack_pop(stack)));
     int32_t* j = ((int32_t *) (stack_pop(stack)));
 
-    stack_push(stack, j);
     stack_push(stack, i);
+    stack_push(stack, j);
 }
 
 void concept_dupl(ConceptStack_t *stack) {
