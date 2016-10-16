@@ -25,9 +25,9 @@
 
 // Limits
 
-#define CONCEPTIP_MAX_LENGTH 30000
-#define CONCEPTFP_MAX_LENGTH 30000
-#define CONCEPTREC_MAX_LENGTH 10000
+#define CONCEPTIP_MAX_LENGTH 60000
+#define CONCEPTFP_MAX_LENGTH 60000
+#define CONCEPTREC_MAX_LENGTH 30000
 
 /*
  * Comceptum Instruction set
@@ -112,7 +112,7 @@
 
 
 // DEBUG settings
-#if 1 // change to 0 if no DEBUG is needed
+#if 0 // change to 0 if no DEBUG is needed
 #ifndef DEBUG
 #define DEBUG // debug params
 #endif
@@ -125,13 +125,13 @@
 #endif
 #endif
 
-#if 1 // change to 0 if no read text file timing is needed
+#if 0 // change to 0 if no read text file timing is needed
 #ifndef MEASURE_READ_FILE_TIME
 #define MEASURE_READ_FILE_TIME
 #endif
 #endif
 
-#if 1 // change to 0 if no JIT timing is needed
+#if 0 // change to 0 if no JIT timing is needed
 #ifndef MEASURE_PARSE_TIME
 #define MEASURE_PARSE_TIME
 #endif
@@ -143,7 +143,7 @@
 #endif
 #endif
 
-#if 1 // change to 0 if do not measure full timing
+#if 0 // change to 0 if do not measure full timing
 #ifndef MEASURE_FULL_RUNTIME
 #define MEASURE_FULL_RUNTIME
 #endif
