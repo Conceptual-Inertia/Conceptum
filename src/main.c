@@ -875,7 +875,7 @@ void concept_vconst(ConceptStack_t *stack, void *v) {
 
 void concept_print(ConceptStack_t *stack) {
     if (!stack_is_empty(stack))
-        printf("%s", ((char *) stack->operand_stack[stack->top]));
+        printf("%d", *((int32_t *) stack->operand_stack[stack->top]));
 }
 
 void *concept_pop(ConceptStack_t *stack) {
@@ -1729,6 +1729,22 @@ void parse_procedures() {
 }
 
 
+clock_t single_call_time() {
+
+    clock_t t1 = clock();
+    clock_t t2 = clock();
+    return (t2 - t1);
+}
+clock_t measure_avg_call_time() {
+
+    clock_t t_sum = 0;
+    for(int i = 0; i < 5; i ++) {
+        t_sum += single_call_time();
+    }
+    return (t_sum / 5);
+
+}
+
 void run(char *arg) {
     // read in the program
 
@@ -1751,6 +1767,11 @@ void run(char *arg) {
         printf("%s\n", concept_program.code[i]);
     printf("\n-=-=-=-=-=-=-=-=End  Program Listings=-=-=-=-=-=-=-=-=-\n");
 #endif
+
+
+    clock_t avg_call_time = measure_avg_call_time();
+
+
 
     // Allocate the two stacks
     // -=-=-=-=-=-=-=-=-=-=-=-
