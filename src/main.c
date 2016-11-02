@@ -119,7 +119,7 @@
 #endif
 
 // timing settings
-#if 1 // change to 0 if no dispatch timing is needed
+#if 0 // change to 0 if no dispatch timing is needed
 #ifndef MEASURE_SWITCH_DISPATCH
 #define MEASURE_SWITCH_DISPATCH
 #endif
@@ -137,13 +137,13 @@
 #endif
 #endif
 
-#if 1 // change to 0 if no fetch timing is needed
+#if 0 // change to 0 if no fetch timing is needed
 #ifndef MEASURE_FETCH_TIME
 #define MEASURE_FETCH_TIME
 #endif
 #endif
 
-#if 0 // change to 0 if do not measure full timing
+#if 1 // change to 0 if do not measure full timing
 #ifndef MEASURE_FULL_RUNTIME
 #define MEASURE_FULL_RUNTIME
 #endif
@@ -317,11 +317,16 @@ static void stack_dealloc(ConceptStack_t *stack) {
 }
 
 // Free stack memory
-inline static void stack_free(ConceptStack_t *stack) {
+void stack_free(ConceptStack_t *stack) {
+
+#ifdef DEBUG
+    printf("\tstack_free(): deallocating contents of stack...\n");
+#endif
     // Deallocate the stack's contents and properties
     stack_dealloc(stack);
-    // Free everything
-    free(stack);
+#ifdef DEBUG
+    printf("\tstack_free(): Fine. Return.\n\n");
+#endif
 }
 
 // Check if stack is empty TRUE: empty FALSE: not empty
@@ -1217,8 +1222,17 @@ eval(int32_t index, ConceptStack_t *stack, ConceptStack_t *global_stack, int32_t
 }
 
 void cleanup(ConceptStack_t *global_stack) {
+#ifdef DEBUG
+    printf("\ncleanup(): Memfree\n");
+#endif
     memfree();
+#ifdef DEBUG
+    printf("\ncleanup(): Stackfree\n");
+#endif
     stack_free(global_stack);
+#ifdef DEBUG
+    printf("\ncleanup: Finished executing: 1\n");
+#endif
 }
 
 
@@ -1818,9 +1832,16 @@ void run(char *arg) {
     printf(ANSI_COLOR_RESET ANSI_COLOR_BLUE"\n\n PROCESS FETCH TOTAL TIME: %lu us \n\n" ANSI_COLOR_RESET,
            glob_fetch_time * 1000000 / CLOCKS_PER_SEC);
 #endif
+
+#ifdef DEBUG
+    printf(ANSI_COLOR_RESET ANSI_COLOR_RED "\nCONCEPTUM_MAIN: Finished executing. Cleaning up...\n" ANSI_COLOR_RESET);
+#endif
     cleanup(&i_stack);
-    cleanup(&f_stack);
-    memfree();
+    // cleanup(&f_stack); // stack frame cleaned up already
+#ifdef DEBUG
+    printf(ANSI_COLOR_RESET ANSI_COLOR_MAGENTA "\nCONCEPTUM_MAIN: Calling memfree()...\n" ANSI_COLOR_RESET);
+#endif
+    // memfree();
 }
 
 

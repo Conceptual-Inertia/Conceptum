@@ -1,3 +1,0 @@
-/Users/derros/Projects/Conceptum/md/CMakeFiles/edit_cache.dir
-/Users/derros/Projects/Conceptum/md/CMakeFiles/rebuild_cache.dir
-/Users/derros/Projects/Conceptum/md/CMakeFiles/Conceptum.dir

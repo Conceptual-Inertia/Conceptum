@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/cc   -std=c11 -O0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/Conceptum.dir/src/main.c.o CMakeFiles/Conceptum.dir/src/memman.c.o  -o Conceptum 
