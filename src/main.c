@@ -10,6 +10,8 @@
  * ----------------
  *
  *  - Jonathan Schug, who helped debug a memory error
+ *  - Tyler Liu, author of Inertia
+ *  - Creators of CLion for them not to do data flow analysis in CLion for mEsSy CoDE
  */
 
 #include <stdlib.h>
